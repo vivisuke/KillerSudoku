@@ -30,3 +30,12 @@ margin_right = 49.0
 margin_bottom = 49.0
 texture_normal = ExtResource( 2 )
 texture_pressed = ExtResource( 3 )
+
+[node name="Board" type="ColorRect" parent="."]
+margin_left = 7.0
+margin_top = 80.0
+margin_right = 493.0
+margin_bottom = 566.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
