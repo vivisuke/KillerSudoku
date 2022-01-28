@@ -27,7 +27,7 @@ var clue_labels = []		# 手がかり数字用ラベル配列
 var input_labels = []		# 入力数字用ラベル配列
 var ans_bit = []			# 解答の各セル数値（0 | BIT_1 | BIT_2 | ... | BIT_9）
 var cell_bit = []			# 各セル数値（0 | BIT_1 | BIT_2 | ... | BIT_9）
-var cage_lst = []			# ケージリスト配列、要素：IX_CAGE_XXX
+var cage_list = []			# ケージリスト配列、要素：IX_CAGE_XXX
 var cage_ix = []			# 各セルのケージリスト配列インデックス
 var candidates_bit = []		# 入力可能ビット論理和
 var column_used = []		# 各カラムの使用済みビット
@@ -40,8 +40,10 @@ var ClueLabel = load("res://ClueLabel.tscn")
 var InputLabel = load("res://InputLabel.tscn")
 
 func _ready():
-	randomize()
-	rng.randomize()
+	seed(0)
+	rng.set_seed(0)
+	#randomize()
+	#rng.randomize()
 	cell_bit.resize(N_CELLS)
 	candidates_bit.resize(N_CELLS)
 	cage_ix.resize(N_CELLS)
@@ -74,7 +76,7 @@ func init_labels():
 			# ケージ合計用ラベル
 			var label = CageLabel.instance()
 			cage_labels.push_back(label)
-			label.rect_position = Vector2(px, py + 2)
+			label.rect_position = Vector2(px + 1, py + 1)
 			label.text = "45"
 			$Board.add_child(label)
 			# 手がかり数字用ラベル
@@ -148,10 +150,26 @@ func print_cells():
 		print(lst)
 	print("")
 func gen_cage():
-	cage_lst = []
+	cage_list = []
 	var ix = 0
 	for y in range(N_VERT):
 		for x in range(N_HORZ):
+			cage_labels[ix].text = ""
+			var num = bit_to_num(cell_bit[ix])
 			var col = rng.randi_range(0, 3)
+			if $Board/CageTileMap.get_cell(x-1, y) == col:	# 左と同じ色
+				cage_ix[ix] = cage_ix[ix-1]
+				cage_list[cage_ix[ix-1]][1] += num
+				pass
+			elif $Board/CageTileMap.get_cell(x, y-1) == col:	# 上と同じ色
+				cage_ix[ix] = cage_ix[ix-N_HORZ]
+				cage_list[cage_ix[ix-N_HORZ]][1] += num
+				pass
+			else:
+				cage_ix[ix] = cage_list.size()
+				cage_list.push_back([ix, num])
 			$Board/CageTileMap.set_cell(x, y, col)
+			ix += 1
+	for i in range(cage_list.size()):
+		cage_labels[cage_list[i][0]].text = String(cage_list[i][1])
 	pass
