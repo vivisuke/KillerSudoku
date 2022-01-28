@@ -3,12 +3,13 @@ extends Node2D
 enum {
 	#IX_CAGE_COLOR = 0,		# ケージ背景色、0, 1, 2, 3
 	IX_CAGE_TOP_LEFT = 0,	# ケージ左上位置
-	IX_CAGE_SUM,			# ケージ内数字合計
 	IX_CAGE_N,				# ケージ内数字数
-	#IX_CAGE_BIT_OR,			# ケージに含まれる解答数字ビット和
+	IX_CAGE_SUM,			# ケージ内数字合計
+	IX_CAGE_BITS,			# ケージ内数字ビット論理和
 	#IX_CAGE_IX_LIST,		# ケージに含まれるセルIXのリスト
 }
 
+const N_COLOR = 4			# ケージ色種数
 const N_VERT = 9
 const N_HORZ = 9
 const N_CELLS = N_HORZ * N_VERT
@@ -43,10 +44,12 @@ var ClueLabel = load("res://ClueLabel.tscn")
 var InputLabel = load("res://InputLabel.tscn")
 
 func _ready():
-	seed(1)
-	rng.set_seed(1)
-	#randomize()
-	#rng.randomize()
+	if true:
+		randomize()
+		rng.randomize()
+	else:
+		seed(1)
+		rng.set_seed(1)
 	cell_bit.resize(N_CELLS)
 	candidates_bit.resize(N_CELLS)
 	cage_ix.resize(N_CELLS)
@@ -160,6 +163,13 @@ func merge_cage(cix0, cix):		# cix を cix0 にマージ
 	for i in range(cix + 1):
 		if cage_ix[i] == cix: cage_ix[i] = cix0
 	cage_list[cix][IX_CAGE_TOP_LEFT] = -1
+func diff_color(c1, c2):	# c1, c2 と異なる色を選択
+	c1 = (c1 + 1) % N_COLOR
+	if c1 == c2: c1 = (c1 + 1) % N_COLOR
+	return c1
+func add_cage(ix, num, bit):
+	cage_ix[ix] = cage_list.size()
+	cage_list.push_back([ix, 1, num, bit])
 func gen_cage():
 	cage_list = []
 	var ix = 0
@@ -167,11 +177,17 @@ func gen_cage():
 		for x in range(N_HORZ):
 			cage_labels[ix].text = ""
 			var num = bit_to_num(cell_bit[ix])
+			var bit = num_to_bit(num)
 			var col = rng.randi_range(0, 3)
-			if y > 0 && cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_N] == 1:	# 直上が１セルだけの場合
+			# done: 上・左のケージ内に同じ数字がある場合は、それらと異なる色にする
+			if( y > 0 && (cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_BITS] & bit) != 0 ||	# 上のケージ内に同じ数字がある
+				x > 0 && (cage_list[cage_ix[ix-1]][IX_CAGE_BITS] & bit) != 0 ):			# 左のケージ内に同じ数字がある
+					col = diff_color($Board/CageTileMap.get_cell(x-1, y), $Board/CageTileMap.get_cell(x, y-1))
+					#add_cage(ix, num, bit)
+			elif y > 0 && cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_N] == 1:	# 直上が１セルだけの場合
 				col = $Board/CageTileMap.get_cell(x, y-1)
 			elif y == N_VERT - 1:
-				if x > 0 && cage_list[cage_ix[ix-1]][IX_CAGE_N] == 1:	# 直上が１セルだけの場合
+				if x > 0 && cage_list[cage_ix[ix-1]][IX_CAGE_N] == 1:	# 直左が１セルだけの場合
 					col = $Board/CageTileMap.get_cell(x-1, y)
 				elif x == N_HORZ - 1:
 					if cage_list[cage_ix[ix-1]][IX_CAGE_N] < cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_N]:
@@ -181,18 +197,22 @@ func gen_cage():
 			if $Board/CageTileMap.get_cell(x-1, y) == col:	# 左と同じ色
 				if( $Board/CageTileMap.get_cell(x, y-1) == col &&	# 上と同じ色
 					cage_ix[ix-N_HORZ] != cage_ix[ix-1] ):			# 上と左が異なるケージの場合
+						# undone: 上、左に同じ数字がある場合はマージ不可 → 色を変える
 						merge_cage(cage_ix[ix-1], cage_ix[ix-N_HORZ])		# 上を左にマージ
 				cage_ix[ix] = cage_ix[ix-1]
-				cage_list[cage_ix[ix-1]][IX_CAGE_SUM] += num
 				cage_list[cage_ix[ix-1]][IX_CAGE_N] += 1
+				cage_list[cage_ix[ix-1]][IX_CAGE_SUM] += num
+				cage_list[cage_ix[ix-1]][IX_CAGE_BITS] |= bit
 			else:
 				if $Board/CageTileMap.get_cell(x, y-1) == col:	# 上と同じ色
 					cage_ix[ix] = cage_ix[ix-N_HORZ]
-					cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_SUM] += num
 					cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_N] += 1
+					cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_SUM] += num
+					cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_BITS] |= bit
 				else:
-					cage_ix[ix] = cage_list.size()
-					cage_list.push_back([ix, num, 1])
+					add_cage(ix, num, bit)
+					#cage_ix[ix] = cage_list.size()
+					#cage_list.push_back([ix, 1, num, num_to_bit(num)])
 			$Board/CageTileMap.set_cell(x, y, col)
 			ix += 1
 	for i in range(cage_list.size()):
