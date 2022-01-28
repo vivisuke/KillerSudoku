@@ -170,8 +170,14 @@ func gen_cage():
 			var col = rng.randi_range(0, 3)
 			if y > 0 && cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_N] == 1:	# 直上が１セルだけの場合
 				col = $Board/CageTileMap.get_cell(x, y-1)
-			if y == N_VERT - 1 && x > 0 && cage_list[cage_ix[ix-1]][IX_CAGE_N] == 1:	# 直上が１セルだけの場合
-				col = $Board/CageTileMap.get_cell(x-1, y)
+			elif y == N_VERT - 1:
+				if x > 0 && cage_list[cage_ix[ix-1]][IX_CAGE_N] == 1:	# 直上が１セルだけの場合
+					col = $Board/CageTileMap.get_cell(x-1, y)
+				elif x == N_HORZ - 1:
+					if cage_list[cage_ix[ix-1]][IX_CAGE_N] < cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_N]:
+						col = $Board/CageTileMap.get_cell(x-1, y)
+					else:
+						col = $Board/CageTileMap.get_cell(x, y-1)
 			if $Board/CageTileMap.get_cell(x-1, y) == col:	# 左と同じ色
 				if( $Board/CageTileMap.get_cell(x, y-1) == col &&	# 上と同じ色
 					cage_ix[ix-N_HORZ] != cage_ix[ix-1] ):			# 上と左が異なるケージの場合
