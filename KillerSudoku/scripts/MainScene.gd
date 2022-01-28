@@ -16,9 +16,11 @@ const BIT_8 = 1<<7
 const BIT_9 = 1<<8
 const ALL_BITS = (1<<N_HORZ) - 1
 
+var cage_labels = []		# ケージ合計数字用ラベル配列
 var clue_labels = []		# 手がかり数字用ラベル配列
 var input_labels = []		# 入力数字用ラベル配列
 
+var CageLabel = load("res://CageLabel.tscn")
 var ClueLabel = load("res://ClueLabel.tscn")
 
 func _ready():
@@ -34,4 +36,9 @@ func init_labels():
 			clue_labels.push_back(label)
 			label.rect_position = Vector2(px, py + 2)
 			label.text = String((x+y)%9 + 1)
+			$Board.add_child(label)
+			label = CageLabel.instance()
+			cage_labels.push_back(label)
+			label.rect_position = Vector2(px, py + 2)
+			label.text = "45"
 			$Board.add_child(label)
