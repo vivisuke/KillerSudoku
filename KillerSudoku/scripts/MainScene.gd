@@ -1,9 +1,12 @@
 extends Node2D
 
 enum {
-	IX_CAGE_COLOR = 0,		# ケージ背景色、0, 1, 2, 3
-	IX_CAGE_BIT_OR,			# ケージに含まれる解答数字ビット和
-	IX_CAGE_IX_LIST,		# ケージに含まれるセルIXのリスト
+	#IX_CAGE_COLOR = 0,		# ケージ背景色、0, 1, 2, 3
+	IX_CAGE_TOP_LEFT = 0,	# ケージ左上位置
+	IX_CAGE_SUM,			# ケージ内数字合計
+	IX_CAGE_N,				# ケージ内数字数
+	#IX_CAGE_BIT_OR,			# ケージに含まれる解答数字ビット和
+	#IX_CAGE_IX_LIST,		# ケージに含まれるセルIXのリスト
 }
 
 const N_VERT = 9
@@ -40,8 +43,8 @@ var ClueLabel = load("res://ClueLabel.tscn")
 var InputLabel = load("res://InputLabel.tscn")
 
 func _ready():
-	seed(0)
-	rng.set_seed(0)
+	seed(1)
+	rng.set_seed(1)
 	#randomize()
 	#rng.randomize()
 	cell_bit.resize(N_CELLS)
@@ -149,6 +152,14 @@ func print_cells():
 			ix += 1
 		print(lst)
 	print("")
+func merge_cage(cix0, cix):		# cix を cix0 にマージ
+	print(cage_list[cix0])
+	print(cage_list[cix])
+	cage_list[cix0][IX_CAGE_SUM] += cage_list[cix][IX_CAGE_SUM]
+	cage_list[cix0][IX_CAGE_N] += cage_list[cix][IX_CAGE_N]
+	for i in range(cix + 1):
+		if cage_ix[i] == cix: cage_ix[i] = cix0
+	cage_list[cix][IX_CAGE_TOP_LEFT] = -1
 func gen_cage():
 	cage_list = []
 	var ix = 0
@@ -157,19 +168,28 @@ func gen_cage():
 			cage_labels[ix].text = ""
 			var num = bit_to_num(cell_bit[ix])
 			var col = rng.randi_range(0, 3)
+			if y > 0 && cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_N] == 1:	# 直上が１セルだけの場合
+				col = $Board/CageTileMap.get_cell(x, y-1)
+			if y == N_VERT - 1 && x > 0 && cage_list[cage_ix[ix-1]][IX_CAGE_N] == 1:	# 直上が１セルだけの場合
+				col = $Board/CageTileMap.get_cell(x-1, y)
 			if $Board/CageTileMap.get_cell(x-1, y) == col:	# 左と同じ色
+				if( $Board/CageTileMap.get_cell(x, y-1) == col &&	# 上と同じ色
+					cage_ix[ix-N_HORZ] != cage_ix[ix-1] ):			# 上と左が異なるケージの場合
+						merge_cage(cage_ix[ix-1], cage_ix[ix-N_HORZ])		# 上を左にマージ
 				cage_ix[ix] = cage_ix[ix-1]
-				cage_list[cage_ix[ix-1]][1] += num
-				pass
-			elif $Board/CageTileMap.get_cell(x, y-1) == col:	# 上と同じ色
-				cage_ix[ix] = cage_ix[ix-N_HORZ]
-				cage_list[cage_ix[ix-N_HORZ]][1] += num
-				pass
+				cage_list[cage_ix[ix-1]][IX_CAGE_SUM] += num
+				cage_list[cage_ix[ix-1]][IX_CAGE_N] += 1
 			else:
-				cage_ix[ix] = cage_list.size()
-				cage_list.push_back([ix, num])
+				if $Board/CageTileMap.get_cell(x, y-1) == col:	# 上と同じ色
+					cage_ix[ix] = cage_ix[ix-N_HORZ]
+					cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_SUM] += num
+					cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_N] += 1
+				else:
+					cage_ix[ix] = cage_list.size()
+					cage_list.push_back([ix, num, 1])
 			$Board/CageTileMap.set_cell(x, y, col)
 			ix += 1
 	for i in range(cage_list.size()):
-		cage_labels[cage_list[i][0]].text = String(cage_list[i][1])
+		if cage_list[i][IX_CAGE_TOP_LEFT] >= 0:
+			cage_labels[cage_list[i][IX_CAGE_TOP_LEFT]].text = String(cage_list[i][IX_CAGE_SUM])
 	pass
