@@ -1,5 +1,11 @@
 extends Node2D
 
+enum {
+	IX_CAGE_COLOR = 0,		# ケージ背景色、0, 1, 2, 3
+	IX_CAGE_BIT_OR,			# ケージに含まれる解答数字ビット和
+	IX_CAGE_IX_LIST,		# ケージに含まれるセルIXのリスト
+}
+
 const N_VERT = 9
 const N_HORZ = 9
 const N_CELLS = N_HORZ * N_VERT
@@ -21,17 +27,24 @@ var clue_labels = []		# 手がかり数字用ラベル配列
 var input_labels = []		# 入力数字用ラベル配列
 var ans_bit = []			# 解答の各セル数値（0 | BIT_1 | BIT_2 | ... | BIT_9）
 var cell_bit = []			# 各セル数値（0 | BIT_1 | BIT_2 | ... | BIT_9）
+var cage_lst = []			# ケージリスト配列、要素：IX_CAGE_XXX
+var cage_ix = []			# 各セルのケージリスト配列インデックス
 var candidates_bit = []		# 入力可能ビット論理和
 var column_used = []		# 各カラムの使用済みビット
 var box_used = []			# 各3x3ブロックの使用済みビット
+
+var rng = RandomNumberGenerator.new()
 
 var CageLabel = load("res://CageLabel.tscn")
 var ClueLabel = load("res://ClueLabel.tscn")
 var InputLabel = load("res://InputLabel.tscn")
 
 func _ready():
+	randomize()
+	rng.randomize()
 	cell_bit.resize(N_CELLS)
 	candidates_bit.resize(N_CELLS)
+	cage_ix.resize(N_CELLS)
 	column_used.resize(N_HORZ)
 	box_used.resize(N_HORZ)
 	#
@@ -39,6 +52,7 @@ func _ready():
 	gen_ans()
 	for i in range(N_CELLS):
 		clue_labels[i].text = bit_to_numstr(cell_bit[i])
+	gen_cage()
 	pass
 func xyToIX(x, y) -> int: return x + y * N_HORZ
 func num_to_bit(n : int): return 1 << (n-1) if n != 0 else 0
@@ -133,3 +147,11 @@ func print_cells():
 			ix += 1
 		print(lst)
 	print("")
+func gen_cage():
+	cage_lst = []
+	var ix = 0
+	for y in range(N_VERT):
+		for x in range(N_HORZ):
+			var col = rng.randi_range(0, 3)
+			$Board/CageTileMap.set_cell(x, y, col)
+	pass
