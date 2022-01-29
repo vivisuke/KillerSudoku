@@ -197,6 +197,11 @@ func gen_cage():
 						col = $Board/CageTileMap.get_cell(x-1, y)
 					else:
 						col = $Board/CageTileMap.get_cell(x, y-1)
+			elif y == 0 && x > 0 && cage_list[cage_ix[ix-1]][IX_CAGE_N] == 1:	# １行目、左が１セルだけの場合
+				if rng.randf_range(0.0, 1.0) <= 0.5:
+					col = $Board/CageTileMap.get_cell(x-1, y)
+				elif col == $Board/CageTileMap.get_cell(x-1, y):
+					col = (col + 1) % N_COLOR
 			if $Board/CageTileMap.get_cell(x-1, y) == col:	# 左と同じ色の場合
 				if( $Board/CageTileMap.get_cell(x, y-1) == col &&	# 上と同じ色の場合
 					cage_ix[ix-N_HORZ] != cage_ix[ix-1] ):			# 上と左が異なるケージの場合
