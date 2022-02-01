@@ -503,7 +503,7 @@ func _input(event):
 					##push_to_undo_stack([UNDO_TYPE_CELL, ix, int(cur_num), 0, [], 0])		# ix, old, new
 					input_labels[ix].text = ""
 				else:	# 上書き
-					##input_num = int(cur_num)
+					input_num = int(cur_num)
 					#var lst = remove_memo_num(ix, cur_num)
 					#var mb = get_memo_bits(ix)
 					#push_to_undo_stack([UNDO_TYPE_CELL, ix, int(input_labels[ix].text), input_num, lst, mb])
