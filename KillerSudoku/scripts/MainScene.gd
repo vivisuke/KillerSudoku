@@ -444,6 +444,12 @@ func update_num_buttons_disabled():		# 使い切った数字ボタンをディ�
 		num_used[get_cell_numer(ix)] += 1
 	for i in range(N_HORZ):
 		num_buttons[i+1].disabled = num_used[i+1] >= N_HORZ
+func sound_effect():
+	if sound:
+		if input_num > 0 && num_used[input_num] >= 9:
+			$AudioNumCompleted.play()
+		else:
+			$AudioNumClicked.play()
 func clear_cell_cursor():
 	for y in range(N_VERT):
 		for x in range(N_HORZ):
@@ -505,6 +511,7 @@ func _input(event):
 				##for i in range(N_HORZ): memo_labels[ix][i].text = ""	# メモ数字削除
 				pass
 		update_all_status()
+		sound_effect()
 		pass
 	if event is InputEventKey && event.is_pressed():
 		print(event.as_text())
@@ -533,6 +540,7 @@ func num_button_pressed(num : int, button_pressed):
 		update_cell_cursor(cur_num)
 	in_button_pressed = false
 	update_all_status()
+	sound_effect()
 	pass
 func _on_Button1_toggled(button_pressed):
 	num_button_pressed(1, button_pressed)
