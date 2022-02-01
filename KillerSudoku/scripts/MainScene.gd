@@ -38,6 +38,10 @@ const TILE_CURSOR = 0
 const TILE_LTBLUE = 1				# 強調カーソル（薄青）
 const TILE_LTORANGE = 2				# 強調カーソル（薄橙）
 const TILE_PINK = 3					# 強調カーソル（薄ピンク）
+const COLOR_INCORRECT = Color.red
+const COLOR_DUP = Color.red
+const COLOR_CLUE = Color.black
+const COLOR_INPUT = Color("#2980b9")	# VELIZE HOLE
 
 # 要素：[sum, col, ix1, ix2, ...]
 const QUEST1 = [ # by wikipeida
@@ -382,7 +386,7 @@ func update_all_status():
 	update_cell_cursor(cur_num)
 	##update_NEmptyLabel()
 	update_num_buttons_disabled()
-	##check_duplicated()
+	check_duplicated()
 	##$HintButton.disabled = solvedStat
 	##$CheckButton.disabled = solvedStat
 	##if qCreating:
@@ -404,6 +408,35 @@ func update_all_status():
 	##$CheckButton.disabled = g.env[g.KEY_N_COINS] <= 0
 	##$HintButton.disabled = g.env[g.KEY_N_COINS] <= 0
 	##$AutoMemoButton.disabled = g.env[g.KEY_N_COINS] < AUTO_MEMO_N_COINS
+func is_duplicated(ix : int):
+	var n = get_cell_numer(ix)
+	if n == 0: return false
+	var x = ix % N_HORZ
+	var y = ix / N_HORZ
+	for t in range(N_HORZ):
+		if t != x && get_cell_numer(xyToIX(t, y)) == n:
+			return true
+		if t != y && get_cell_numer(xyToIX(x, t)) == n:
+			return true
+	var x0 = x - x % 3		# 3x3ブロック左上位置
+	var y0 = y - y % 3
+	for v in range(3):
+		for h in range(3):
+			var ix3 = xyToIX(x0+h, y0+v)
+			if ix3 != ix && get_cell_numer(ix3) == n:
+				return true
+	return false
+func check_duplicated():
+	nDuplicated = 0
+	for ix in range(N_CELLS):
+		if is_duplicated(ix):
+			nDuplicated += 1
+			clue_labels[ix].add_color_override("font_color", COLOR_DUP)
+			input_labels[ix].add_color_override("font_color", COLOR_DUP)
+		else:
+			clue_labels[ix].add_color_override("font_color", COLOR_CLUE)
+			input_labels[ix].add_color_override("font_color", COLOR_INPUT)
+	pass
 func update_num_buttons_disabled():		# 使い切った数字ボタンをディセーブル
 	#var nUsed = []		# 各数字の使用数 [0] for EMPTY
 	for i in range(N_HORZ+1): num_used[i] = 0
