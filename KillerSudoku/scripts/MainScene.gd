@@ -103,6 +103,10 @@ func _ready():
 	column_used.resize(N_HORZ)
 	box_used.resize(N_HORZ)
 	#
+	num_buttons.push_back($DeleteButton)
+	for i in range(N_HORZ):
+		num_buttons.push_back(get_node("Button%d" % (i+1)))
+	#
 	init_labels()
 	#gen_ans()
 	#show_clues()	# 手がかり数字表示
@@ -350,6 +354,11 @@ func update_all_status():
 	##$CheckButton.disabled = g.env[g.KEY_N_COINS] <= 0
 	##$HintButton.disabled = g.env[g.KEY_N_COINS] <= 0
 	##$AutoMemoButton.disabled = g.env[g.KEY_N_COINS] < AUTO_MEMO_N_COINS
+func _input(event):
+	if menuPopuped: return
+	if event is InputEventMouseButton && event.is_pressed():
+		pass
+	pass
 func num_button_pressed(num : int, button_pressed):
 	print("num = ", num)
 	if in_button_pressed: return		# ボタン押下処理中の場合
