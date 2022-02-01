@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=19 format=2]
 
 [ext_resource path="res://scripts/TitleBar.gd" type="Script" id=1]
 [ext_resource path="res://images/leftward_white.png" type="Texture" id=2]
@@ -9,6 +9,7 @@
 [ext_resource path="res://images/lt_green_54x54.png" type="Texture" id=7]
 [ext_resource path="res://images/lt_pink_54x54.png" type="Texture" id=8]
 [ext_resource path="res://scripts/MainScene.gd" type="Script" id=9]
+[ext_resource path="res://fonts/arialbd.ttf" type="DynamicFontData" id=10]
 
 [sub_resource type="TileSet" id=1]
 0/name = "lt_yellow_54x54.png 0"
@@ -68,6 +69,51 @@
 3/shapes = [  ]
 3/z_index = 0
 
+[sub_resource type="DynamicFont" id=2]
+size = 40
+font_data = ExtResource( 10 )
+
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 1, 0.396078, 0, 1 )
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0.160784, 0.501961, 0.72549, 1 )
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 0.627451, 0.627451, 0.627451, 1 )
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id=6]
+bg_color = Color( 1, 1, 1, 1 )
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color( 0, 0, 0, 1 )
+shadow_size = 4
+shadow_offset = Vector2( 2, 2 )
+
+[sub_resource type="DynamicFont" id=7]
+size = 40
+font_data = ExtResource( 10 )
+
+[sub_resource type="StyleBoxFlat" id=8]
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [node name="MainScene" type="Node2D"]
 script = ExtResource( 9 )
 
@@ -115,6 +161,231 @@ margin_right = 486.0
 margin_bottom = 486.0
 color = Color( 1, 1, 1, 0 )
 script = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button1" type="Button" parent="."]
+anchor_left = 26.0
+anchor_top = 26.0
+anchor_right = 26.0
+anchor_bottom = 26.0
+margin_left = 144.0
+margin_top = 605.0
+margin_right = 196.0
+margin_bottom = 657.0
+custom_colors/font_color_disabled = Color( 0.501961, 0.501961, 0.501961, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = SubResource( 2 )
+custom_styles/hover = SubResource( 3 )
+custom_styles/pressed = SubResource( 4 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 6 )
+toggle_mode = true
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button2" type="Button" parent="."]
+anchor_left = 26.0
+anchor_top = 26.0
+anchor_right = 26.0
+anchor_bottom = 26.0
+margin_left = 224.0
+margin_top = 605.0
+margin_right = 276.0
+margin_bottom = 657.0
+custom_colors/font_color_disabled = Color( 0.501961, 0.501961, 0.501961, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = SubResource( 7 )
+custom_styles/hover = SubResource( 3 )
+custom_styles/pressed = SubResource( 4 )
+custom_styles/disabled = SubResource( 8 )
+custom_styles/normal = SubResource( 6 )
+toggle_mode = true
+text = "2"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button3" type="Button" parent="."]
+anchor_left = 26.0
+anchor_top = 26.0
+anchor_right = 26.0
+anchor_bottom = 26.0
+margin_left = 304.0
+margin_top = 605.0
+margin_right = 356.0
+margin_bottom = 657.0
+custom_colors/font_color_disabled = Color( 0.501961, 0.501961, 0.501961, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = SubResource( 7 )
+custom_styles/hover = SubResource( 3 )
+custom_styles/pressed = SubResource( 4 )
+custom_styles/disabled = SubResource( 8 )
+custom_styles/normal = SubResource( 6 )
+toggle_mode = true
+text = "3"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button4" type="Button" parent="."]
+anchor_left = 26.0
+anchor_top = 26.0
+anchor_right = 26.0
+anchor_bottom = 26.0
+margin_left = 144.0
+margin_top = 685.0
+margin_right = 196.0
+margin_bottom = 737.0
+custom_colors/font_color_disabled = Color( 0.501961, 0.501961, 0.501961, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = SubResource( 7 )
+custom_styles/hover = SubResource( 3 )
+custom_styles/pressed = SubResource( 4 )
+custom_styles/disabled = SubResource( 8 )
+custom_styles/normal = SubResource( 6 )
+toggle_mode = true
+text = "4"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button5" type="Button" parent="."]
+anchor_left = 26.0
+anchor_top = 26.0
+anchor_right = 26.0
+anchor_bottom = 26.0
+margin_left = 224.0
+margin_top = 685.0
+margin_right = 276.0
+margin_bottom = 737.0
+custom_colors/font_color_disabled = Color( 0.501961, 0.501961, 0.501961, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = SubResource( 7 )
+custom_styles/hover = SubResource( 3 )
+custom_styles/pressed = SubResource( 4 )
+custom_styles/disabled = SubResource( 8 )
+custom_styles/normal = SubResource( 6 )
+toggle_mode = true
+text = "5"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button6" type="Button" parent="."]
+anchor_left = 26.0
+anchor_top = 26.0
+anchor_right = 26.0
+anchor_bottom = 26.0
+margin_left = 304.0
+margin_top = 685.0
+margin_right = 356.0
+margin_bottom = 737.0
+custom_colors/font_color_disabled = Color( 0.501961, 0.501961, 0.501961, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = SubResource( 7 )
+custom_styles/hover = SubResource( 3 )
+custom_styles/pressed = SubResource( 4 )
+custom_styles/disabled = SubResource( 8 )
+custom_styles/normal = SubResource( 6 )
+toggle_mode = true
+text = "6"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button7" type="Button" parent="."]
+anchor_left = 26.0
+anchor_top = 26.0
+anchor_right = 26.0
+anchor_bottom = 26.0
+margin_left = 144.0
+margin_top = 765.0
+margin_right = 196.0
+margin_bottom = 817.0
+custom_colors/font_color_disabled = Color( 0.501961, 0.501961, 0.501961, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = SubResource( 7 )
+custom_styles/hover = SubResource( 3 )
+custom_styles/pressed = SubResource( 4 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 6 )
+toggle_mode = true
+text = "7"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button8" type="Button" parent="."]
+anchor_left = 26.0
+anchor_top = 26.0
+anchor_right = 26.0
+anchor_bottom = 26.0
+margin_left = 224.0
+margin_top = 765.0
+margin_right = 276.0
+margin_bottom = 817.0
+custom_colors/font_color_disabled = Color( 0.501961, 0.501961, 0.501961, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = SubResource( 7 )
+custom_styles/hover = SubResource( 3 )
+custom_styles/pressed = SubResource( 4 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 6 )
+toggle_mode = true
+text = "8"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button9" type="Button" parent="."]
+anchor_left = 26.0
+anchor_top = 26.0
+anchor_right = 26.0
+anchor_bottom = 26.0
+margin_left = 304.0
+margin_top = 765.0
+margin_right = 356.0
+margin_bottom = 817.0
+custom_colors/font_color_disabled = Color( 0.501961, 0.501961, 0.501961, 1 )
+custom_colors/font_color_focus = Color( 0, 0, 0, 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_color_hover = Color( 1, 1, 1, 1 )
+custom_colors/font_color_pressed = Color( 1, 1, 1, 1 )
+custom_fonts/font = SubResource( 7 )
+custom_styles/hover = SubResource( 3 )
+custom_styles/pressed = SubResource( 4 )
+custom_styles/disabled = SubResource( 5 )
+custom_styles/normal = SubResource( 6 )
+toggle_mode = true
+text = "9"
 __meta__ = {
 "_edit_use_anchors_": false
 }
