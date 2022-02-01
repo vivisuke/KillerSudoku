@@ -540,7 +540,7 @@ func num_button_pressed(num : int, button_pressed):
 		update_cell_cursor(cur_num)
 	in_button_pressed = false
 	update_all_status()
-	sound_effect()
+	#sound_effect()
 	pass
 func _on_Button1_toggled(button_pressed):
 	num_button_pressed(1, button_pressed)
