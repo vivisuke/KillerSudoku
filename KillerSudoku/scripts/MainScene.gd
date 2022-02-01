@@ -94,6 +94,11 @@ var cage_ix = []			# 各セルのケージリスト配列インデックス
 var candidates_bit = []		# 入力可能ビット論理和
 var column_used = []		# 各カラムの使用済みビット
 var box_used = []			# 各3x3ブロックの使用済みビット
+var memo_labels = []		# メモ（候補数字）用ラベル配列（２次元）
+var memo_text = []			# ポーズ復活時用ラベルテキスト配列（２次元）
+var shock_wave_timer = -1
+var undo_ix = 0
+var undo_stack = []			# 要素：[ix old new]、old, new は 0～9 の数値、0 for 空欄
 
 var rng = RandomNumberGenerator.new()
 
@@ -457,6 +462,17 @@ func _input(event):
 				pass
 		update_all_status()
 		pass
+	if event is InputEventKey && event.is_pressed():
+		print(event.as_text())
+		if paused: return
+		##if event.as_text() != "Alt" && hint_showed:
+		##	close_hint()
+		##	return
+		if event.as_text() == "W" :
+			shock_wave_timer = 0.0      # start shock wave
+		var n = int(event.as_text())
+		if n >= 1 && n <= 9:
+			num_button_pressed(n, true)
 	pass
 func num_button_pressed(num : int, button_pressed):
 	print("num = ", num)
