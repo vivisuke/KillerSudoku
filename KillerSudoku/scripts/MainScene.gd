@@ -40,6 +40,38 @@ const QUEST1 = [ # by wikipeida
 	[13, 0, 76, 77, 78], [17, 2, 79, 80],
 ]
 
+var symmetric = true		# 対称形問題
+var qCreating = false		# 問題生成中
+var solvedStat = false		# クリア済み状態
+var paused = false			# ポーズ状態
+var sound = true			# 効果音
+var menuPopuped = false
+var hint_showed = false
+var memo_mode = false		# メモ（候補数字）エディットモード
+var in_button_pressed = false	# ボタン押下処理中
+var hint_next_pos			# 次ボタン位置
+var hint_next_pos0			# 次ボタン初期位置
+var hint_next_vy			# 次ボタン速度
+var saved_cell_data = []
+
+#var hint_next_scale = 1.0	# ヒント次ボタン表示スケール
+#var hint_num				# ヒントで確定する数字、[1, 9]
+var hint_numstr				# ヒントで確定する数字、[1, 9]
+var hint_ix = 0				# 0, 1, 2, ...
+var hint_texts = []			# ヒントテキスト配列
+#var restarted = false
+#var elapsedTime = 0.0   	# 経過時間（単位：秒）
+var saved_time
+var nEmpty = 0				# 空欄数
+var nDuplicated = 0			# 重複数字数
+#var optGrade = -1			# 問題グレード、0: 入門、1:初級、2:ノーマル（初中級）
+var diffculty = 0			# 難易度、フルハウス: 1, 隠れたシングル: 2, 裸のシングル: 10pnt？
+var num_buttons = []		# 各数字ボタンリスト [0] -> 削除ボタン、[1] -> Button1, ...
+var cur_num = -1			# 選択されている数字ボタン、-1 for 選択無し
+var cur_cell_ix = -1		# 選択されているセルインデックス、-1 for 選択無し
+var input_num = 0			# 入力された数字
+var nRemoved
+
 var cage_labels = []		# ケージ合計数字用ラベル配列
 var clue_labels = []		# 手がかり数字用ラベル配列
 var input_labels = []		# 入力数字用ラベル配列
@@ -117,8 +149,8 @@ func set_quest(cages):
 		for x in range(N_HORZ):
 			$Board/CageTileMap.set_cell(x, y, -1)
 	#var col = 0
-	for i in range(cages.size()):
-		var item = cages[i]			# [sum, ix1, ix2, ... ]
+	for cix in range(cages.size()):
+		var item = cages[cix]			# [sum, col, ix1, ix2, ... ]
 		cage_labels[item[2]].text = String(item[0])
 		var x1 = item[2] % N_HORZ
 		var y1 = item[2] / N_HORZ
@@ -127,9 +159,13 @@ func set_quest(cages):
 		#	col = (col + 1) % N_COLOR
 		var col = item[1]
 		for k in range(2, item.size()):
-			var x = item[k] % N_HORZ
-			var y = item[k] / N_HORZ
-			$Board/CageTileMap.set_cell(x, y, col)
+			cage_ix[item[k]] = cix
+			#var x = item[k] % N_HORZ
+			#var y = item[k] / N_HORZ
+			#$Board/CageTileMap.set_cell(x, y, col)
+	$Board/CageGrid.cage_ix = cage_ix
+	$Board/CageGrid.update()
+	#update()
 func gen_ans_sub(ix : int, line_used):
 	#print_cells()
 	#print_box_used()
@@ -279,3 +315,72 @@ func gen_cage():
 		if cage_list[i][IX_CAGE_TOP_LEFT] >= 0:
 			cage_labels[cage_list[i][IX_CAGE_TOP_LEFT]].text = String(cage_list[i][IX_CAGE_SUM])
 	pass
+func _draw():
+	pass
+func update_cell_cursor(num):		# 選択数字ボタンと同じ数字セルを強調
+	pass
+func set_num_cursor(num):	# 当該ボタンだけを選択状態に
+	cur_num = num
+	for i in range(num_buttons.size()):
+		num_buttons[i].pressed = (i == num)
+func update_all_status():
+	##update_undo_redo()
+	update_cell_cursor(cur_num)
+	##update_NEmptyLabel()
+	##update_num_buttons_disabled()
+	##check_duplicated()
+	##$HintButton.disabled = solvedStat
+	##$CheckButton.disabled = solvedStat
+	##if qCreating:
+	##	$MessLabel.text = "問題生成中..."
+	##elif solvedStat:
+	##	var n = g.stats[g.qLevel]["NSolved"]
+	##	var avg : int = int(g.stats[g.qLevel]["TotalSec"] / n)
+	##	var txt = g.sec_to_MSStr(avg)
+	##	var bst = g.sec_to_MSStr(g.stats[g.qLevel]["BestTime"])
+	##	$MessLabel.text = "グッジョブ！ クリア回数: %d、平均: %s、最短: %s" % [n, txt, bst]
+	##elif paused:
+	##	$MessLabel.text = "ポーズ中です。解除にはポーズボタンを押してください。"
+	##elif cur_num > 0:
+	##	$MessLabel.text = "現数字（%d）を入れるセルをクリックしてください。" % cur_num
+	##elif cur_cell_ix >= 0:
+	##	$MessLabel.text = "セルに入れる数字ボタンをクリックしてください。"
+	##else:
+	##	$MessLabel.text = "数字ボタンまたは空セルをクリックしてください。"
+	##$CheckButton.disabled = g.env[g.KEY_N_COINS] <= 0
+	##$HintButton.disabled = g.env[g.KEY_N_COINS] <= 0
+	##$AutoMemoButton.disabled = g.env[g.KEY_N_COINS] < AUTO_MEMO_N_COINS
+func num_button_pressed(num : int, button_pressed):
+	print("num = ", num)
+	if in_button_pressed: return		# ボタン押下処理中の場合
+	if paused: return			# ポーズ中
+	in_button_pressed = true
+	if cur_cell_ix >= 0:		# セルが選択されている場合
+		pass
+	else:	# セルが選択されていない場合
+		if button_pressed:
+			set_num_cursor(num)
+		else:
+			cur_num = -1		# toggled
+		update_cell_cursor(cur_num)
+	in_button_pressed = false
+	update_all_status()
+	pass
+func _on_Button1_toggled(button_pressed):
+	num_button_pressed(1, button_pressed)
+func _on_Button2_toggled(button_pressed):
+	num_button_pressed(2, button_pressed)
+func _on_Button3_toggled(button_pressed):
+	num_button_pressed(3, button_pressed)
+func _on_Button4_toggled(button_pressed):
+	num_button_pressed(4, button_pressed)
+func _on_Button5_toggled(button_pressed):
+	num_button_pressed(5, button_pressed)
+func _on_Button6_toggled(button_pressed):
+	num_button_pressed(6, button_pressed)
+func _on_Button7_toggled(button_pressed):
+	num_button_pressed(7, button_pressed)
+func _on_Button8_toggled(button_pressed):
+	num_button_pressed(8, button_pressed)
+func _on_Button9_toggled(button_pressed):
+	num_button_pressed(9, button_pressed)
