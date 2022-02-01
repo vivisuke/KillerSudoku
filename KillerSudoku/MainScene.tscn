@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=2]
+[gd_scene load_steps=59 format=2]
 
 [ext_resource path="res://scripts/TitleBar.gd" type="Script" id=1]
 [ext_resource path="res://images/leftward_white.png" type="Texture" id=2]
@@ -14,6 +14,51 @@
 [ext_resource path="res://fonts/FlopDesignFONT.otf" type="DynamicFontData" id=12]
 [ext_resource path="res://images/backspace_black.png" type="Texture" id=13]
 [ext_resource path="res://images/backspace_BelizeHole.png" type="Texture" id=14]
+[ext_resource path="res://images/lightbulb_white.png" type="Texture" id=15]
+[ext_resource path="res://images/undo_black.png" type="Texture" id=16]
+[ext_resource path="res://images/delMemo.png" type="Texture" id=17]
+[ext_resource path="res://images/auto_candidates_gray.png" type="Texture" id=18]
+[ext_resource path="res://images/delMemo_white.png" type="Texture" id=19]
+[ext_resource path="res://images/lightbulb_gold.png" type="Texture" id=20]
+[ext_resource path="res://images/redo_white.png" type="Texture" id=21]
+[ext_resource path="res://images/pause_white.png" type="Texture" id=22]
+[ext_resource path="res://images/lightbulb_gray.png" type="Texture" id=23]
+[ext_resource path="res://images/undo_white.png" type="Texture" id=24]
+[ext_resource path="res://images/deselect_white.png" type="Texture" id=25]
+[ext_resource path="res://images/done_white.png" type="Texture" id=26]
+[ext_resource path="res://images/edit_black.png" type="Texture" id=27]
+[ext_resource path="res://images/auto_candidates_white.png" type="Texture" id=28]
+[ext_resource path="res://images/undo_gray.png" type="Texture" id=29]
+[ext_resource path="res://images/pause_black.png" type="Texture" id=30]
+[ext_resource path="res://images/redo_gray.png" type="Texture" id=31]
+[ext_resource path="res://images/deselect_black.png" type="Texture" id=32]
+[ext_resource path="res://images/done_gray.png" type="Texture" id=33]
+[ext_resource path="res://images/auto_candidates_gold.png" type="Texture" id=34]
+[ext_resource path="res://images/redo_black.png" type="Texture" id=35]
+[ext_resource path="res://images/done_gold.png" type="Texture" id=36]
+[ext_resource path="res://images/edit_cand_black.png" type="Texture" id=37]
+[ext_resource path="res://fonts/arial.ttf" type="DynamicFontData" id=38]
+[ext_resource path="res://images/gold_medal.png" type="Texture" id=39]
+[ext_resource path="res://images/skip_next_black.png" type="Texture" id=40]
+[ext_resource path="res://images/skip_next_gray.png" type="Texture" id=41]
+[ext_resource path="res://images/skip_next_white.png" type="Texture" id=42]
+[ext_resource path="res://images/lightyellow54x54.png" type="Texture" id=43]
+
+[sub_resource type="TileSet" id=15]
+0/name = "lightyellow54x54.png 0"
+0/texture = ExtResource( 43 )
+0/tex_offset = Vector2( 0, 0 )
+0/modulate = Color( 1, 1, 1, 1 )
+0/region = Rect2( 0, 0, 54, 54 )
+0/tile_mode = 0
+0/occluder_offset = Vector2( 0, 0 )
+0/navigation_offset = Vector2( 0, 0 )
+0/shape_offset = Vector2( 0, 0 )
+0/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+0/shape_one_way = false
+0/shape_one_way_margin = 0.0
+0/shapes = [  ]
+0/z_index = 0
 
 [sub_resource type="TileSet" id=1]
 0/name = "lt_yellow_54x54.png 0"
@@ -122,6 +167,25 @@ corner_radius_bottom_left = 8
 size = 12
 font_data = ExtResource( 12 )
 
+[sub_resource type="DynamicFont" id=10]
+size = 12
+font_data = ExtResource( 12 )
+
+[sub_resource type="DynamicFont" id=11]
+size = 12
+font_data = ExtResource( 12 )
+
+[sub_resource type="DynamicFont" id=12]
+size = 12
+font_data = ExtResource( 12 )
+
+[sub_resource type="DynamicFont" id=13]
+font_data = ExtResource( 38 )
+
+[sub_resource type="DynamicFont" id=14]
+size = 12
+font_data = ExtResource( 12 )
+
 [node name="MainScene" type="Node2D"]
 script = ExtResource( 9 )
 
@@ -158,6 +222,11 @@ margin_bottom = 566.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="TileMap" type="TileMap" parent="Board"]
+tile_set = SubResource( 15 )
+cell_size = Vector2( 54, 54 )
+format = 1
 
 [node name="CageTileMap" type="TileMap" parent="Board"]
 tile_set = SubResource( 1 )
@@ -432,6 +501,282 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="UndoButton" type="TextureButton" parent="."]
+margin_left = 14.0
+margin_top = 605.0
+margin_right = 62.0
+margin_bottom = 653.0
+texture_normal = ExtResource( 16 )
+texture_pressed = ExtResource( 24 )
+texture_disabled = ExtResource( 29 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="UndoButton"]
+margin_top = 48.0
+margin_right = 48.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 10 )
+text = "戻す"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="RedoButton" type="TextureButton" parent="."]
+margin_left = 77.0
+margin_top = 605.0
+margin_right = 125.0
+margin_bottom = 653.0
+texture_normal = ExtResource( 35 )
+texture_pressed = ExtResource( 21 )
+texture_disabled = ExtResource( 31 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="RedoButton"]
+margin_top = 48.0
+margin_right = 48.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 10 )
+text = "進める"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="PauseButton" type="TextureButton" parent="."]
+margin_left = 435.0
+margin_top = 605.0
+margin_right = 483.0
+margin_bottom = 653.0
+texture_normal = ExtResource( 30 )
+texture_pressed = ExtResource( 22 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="PauseButton"]
+margin_top = 48.0
+margin_right = 48.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 11 )
+text = "ポーズ"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="DeselectButton" type="TextureButton" parent="."]
+margin_left = 77.0
+margin_top = 765.0
+margin_right = 125.0
+margin_bottom = 813.0
+texture_normal = ExtResource( 32 )
+texture_pressed = ExtResource( 25 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="DeselectButton"]
+margin_left = -9.0
+margin_top = 48.0
+margin_right = 55.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 11 )
+text = "選択解除"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CheckButton" type="TextureButton" parent="."]
+margin_left = 14.0
+margin_top = 685.0
+margin_right = 62.0
+margin_bottom = 733.0
+texture_normal = ExtResource( 36 )
+texture_pressed = ExtResource( 26 )
+texture_disabled = ExtResource( 33 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="CheckButton"]
+margin_left = -8.0
+margin_top = 48.0
+margin_right = 56.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 11 )
+text = "チェック"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HintButton" type="TextureButton" parent="."]
+margin_left = 77.0
+margin_top = 685.0
+margin_right = 125.0
+margin_bottom = 733.0
+texture_normal = ExtResource( 20 )
+texture_pressed = ExtResource( 15 )
+texture_disabled = ExtResource( 23 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="HintButton"]
+margin_top = 48.0
+margin_right = 48.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 11 )
+text = "ヒント"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MemoButton" type="TextureButton" parent="."]
+margin_left = 373.0
+margin_top = 605.0
+margin_right = 421.0
+margin_bottom = 653.0
+toggle_mode = true
+texture_normal = ExtResource( 27 )
+texture_pressed = ExtResource( 37 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="MemoButton"]
+margin_top = 48.0
+margin_right = 48.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 11 )
+text = "メモ"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="AutoMemoButton" type="TextureButton" parent="."]
+margin_left = 437.0
+margin_top = 685.0
+margin_right = 485.0
+margin_bottom = 733.0
+texture_normal = ExtResource( 34 )
+texture_pressed = ExtResource( 28 )
+texture_disabled = ExtResource( 18 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="AutoMemoButton"]
+margin_left = -7.0
+margin_top = 48.0
+margin_right = 57.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 11 )
+text = "自動メモ"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="DelMemoButton" type="TextureButton" parent="."]
+margin_left = 373.0
+margin_top = 685.0
+margin_right = 421.0
+margin_bottom = 733.0
+texture_normal = ExtResource( 17 )
+texture_pressed = ExtResource( 19 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="DelMemoButton"]
+margin_left = -11.0
+margin_top = 48.0
+margin_right = 53.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 11 )
+text = "メモ削除"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CoinButton" type="TextureButton" parent="."]
+margin_left = 14.0
+margin_top = 765.0
+margin_right = 62.0
+margin_bottom = 813.0
+texture_normal = ExtResource( 39 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="CoinButton"]
+margin_left = -8.0
+margin_top = 48.0
+margin_right = 56.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 12 )
+text = "コイン"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="NCoinLabel" type="Label" parent="CoinButton"]
+margin_right = 48.0
+margin_bottom = 48.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 13 )
+text = "10"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="NextButton" type="TextureButton" parent="."]
+margin_left = 435.0
+margin_top = 765.0
+margin_right = 483.0
+margin_bottom = 813.0
+texture_normal = ExtResource( 40 )
+texture_pressed = ExtResource( 42 )
+texture_disabled = ExtResource( 41 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="NextButton"]
+margin_top = 48.0
+margin_right = 48.0
+margin_bottom = 67.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 14 )
+text = "次問題"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [connection signal="toggled" from="Button1" to="." method="_on_Button1_toggled"]
 [connection signal="toggled" from="Button2" to="." method="_on_Button2_toggled"]
 [connection signal="toggled" from="Button3" to="." method="_on_Button3_toggled"]
@@ -441,3 +786,4 @@ __meta__ = {
 [connection signal="toggled" from="Button7" to="." method="_on_Button7_toggled"]
 [connection signal="toggled" from="Button8" to="." method="_on_Button8_toggled"]
 [connection signal="toggled" from="Button9" to="." method="_on_Button9_toggled"]
+[connection signal="pressed" from="AutoMemoButton" to="." method="_on_AutoMemoButton_pressed"]
