@@ -455,6 +455,7 @@ func _input(event):
 					input_labels[ix].text = num_str
 				##for i in range(N_HORZ): memo_labels[ix][i].text = ""	# メモ数字削除
 				pass
+		update_all_status()
 		pass
 	pass
 func num_button_pressed(num : int, button_pressed):
