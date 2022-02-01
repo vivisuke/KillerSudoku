@@ -27,6 +27,19 @@ const BIT_8 = 1<<7
 const BIT_9 = 1<<8
 const ALL_BITS = (1<<N_HORZ) - 1
 
+# 要素：[sum, col, ix1, ix2, ...]
+const QUEST1 = [ # by wikipeida
+	[3, 0, 0, 1], [15, 1, 2, 3, 4], [22, 2, 5, 13, 14, 22], [4, 1, 6, 15], [16, 0, 7, 16], [15, 1, 8, 17, 26, 35],
+	[25, 2, 9, 10, 18, 19], [17, 3, 11, 12],
+	[9, 0, 20, 21, 30], [8, 1, 23, 32, 41], [20, 2, 24, 25, 33],
+	[6, 0, 27, 36], [14, 3, 28, 29], [17, 3, 31, 40, 49], [17, 3, 34, 42, 43],
+	[13, 1, 37, 38, 46], [20, 2, 39, 48, 57], [12, 0, 44, 53],
+	[27, 2, 45, 54, 63, 72], [6, 0, 47, 55, 56], [20, 0, 50, 59, 60], [6, 2, 51, 52],
+	[10, 1, 58, 66, 67, 75], [14, 1, 61, 62, 70, 71],
+	[8, 1, 64, 73], [16, 3, 65, 74], [15, 3, 68, 69],
+	[13, 0, 76, 77, 78], [17, 2, 79, 80],
+]
+
 var cage_labels = []		# ケージ合計数字用ラベル配列
 var clue_labels = []		# 手がかり数字用ラベル配列
 var input_labels = []		# 入力数字用ラベル配列
@@ -59,10 +72,10 @@ func _ready():
 	box_used.resize(N_HORZ)
 	#
 	init_labels()
-	gen_ans()
-	for i in range(N_CELLS):
-		clue_labels[i].text = bit_to_numstr(cell_bit[i])
-	gen_cage()
+	#gen_ans()
+	#show_clues()	# 手がかり数字表示
+	#gen_cage()
+	set_quest(QUEST1)
 	pass
 func xyToIX(x, y) -> int: return x + y * N_HORZ
 func num_to_bit(n : int): return 1 << (n-1) if n != 0 else 0
@@ -85,13 +98,13 @@ func init_labels():
 			var label = CageLabel.instance()
 			cage_labels.push_back(label)
 			label.rect_position = Vector2(px + 1, py + 1)
-			label.text = "45"
+			label.text = ""
 			$Board.add_child(label)
 			# 手がかり数字用ラベル
 			label = ClueLabel.instance()
 			clue_labels.push_back(label)
 			label.rect_position = Vector2(px, py + 2)
-			label.text = String((x+y)%9 + 1)
+			label.text = ""		#String((x+y)%9 + 1)
 			$Board.add_child(label)
 			# 入力数字用ラベル
 			label = InputLabel.instance()
@@ -99,6 +112,24 @@ func init_labels():
 			label.rect_position = Vector2(px, py + 2)
 			label.text = ""
 			$Board.add_child(label)
+func set_quest(cages):
+	for y in range(N_VERT):
+		for x in range(N_HORZ):
+			$Board/CageTileMap.set_cell(x, y, -1)
+	#var col = 0
+	for i in range(cages.size()):
+		var item = cages[i]			# [sum, ix1, ix2, ... ]
+		cage_labels[item[2]].text = String(item[0])
+		var x1 = item[2] % N_HORZ
+		var y1 = item[2] / N_HORZ
+		#while( $Board/CageTileMap.get_cell(x1, y1-1) == col || $Board/CageTileMap.get_cell(x1-1, y1) == col ||
+		#		$Board/CageTileMap.get_cell(x1, y1+1) == col || $Board/CageTileMap.get_cell(x1+1, y1) == col ):
+		#	col = (col + 1) % N_COLOR
+		var col = item[1]
+		for k in range(2, item.size()):
+			var x = item[k] % N_HORZ
+			var y = item[k] / N_HORZ
+			$Board/CageTileMap.set_cell(x, y, col)
 func gen_ans_sub(ix : int, line_used):
 	#print_cells()
 	#print_box_used()
@@ -127,7 +158,9 @@ func gen_ans_sub(ix : int, line_used):
 		box_used[bix] &= ~lst[i]
 	cell_bit[ix] = 0
 	return false;
-
+func show_clues():
+	for i in range(N_CELLS):
+		clue_labels[i].text = bit_to_numstr(cell_bit[i])
 func gen_ans():		# 解答生成
 	for i in range(N_CELLS):
 		clue_labels[i].text = "?"
@@ -194,45 +227,46 @@ func gen_cage():
 			var col = rng.randi_range(0, 3)
 			var uc = $Board/CageTileMap.get_cell(x, y-1)
 			var lc = $Board/CageTileMap.get_cell(x-1, y)
-			var nu = 0 if y == 0 else cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_N]	# 直上ケージ数字数
-			var nl = 0 if x == 0 else cage_list[cage_ix[ix-1]][IX_CAGE_N]	# 直左ケージ数字数
+			var un = 0 if y == 0 else cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_N]	# 直上ケージ数字数
+			var ln = 0 if x == 0 else cage_list[cage_ix[ix-1]][IX_CAGE_N]	# 直左ケージ数字数
+			var ub = 0 if y == 0 else cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_BITS]	# 直上ケージ数字数
+			var lb = 0 if x == 0 else cage_list[cage_ix[ix-1]][IX_CAGE_BITS]	# 直左ケージ数字数
 			# done: 上・左のケージ内に num と同じ数字がある場合は、それらと異なる色にする
-			if( y > 0 && (cage_list[cage_ix[ix-N_HORZ]][IX_CAGE_BITS] & bit) != 0 ||	# 上のケージ内に同じ数字がある
-				x > 0 && (cage_list[cage_ix[ix-1]][IX_CAGE_BITS] & bit) != 0 ||			# 左のケージ内に同じ数字がある
-				y > 0 && nu == CAGE_N_NUM_MAX && col == uc ||	# 上のケージ内数字数上限
-				x > 0 && nl == CAGE_N_NUM_MAX && col == lc ):	# 左のケージ内数字数上限
+			if( y > 0 && (ub & bit) != 0 ||		# 上のケージ内に同じ数字がある
+				x > 0 && (lb & bit) != 0 ||		# 左のケージ内に同じ数字がある
+				y > 0 && un == CAGE_N_NUM_MAX && col == uc ||	# 上のケージ内数字数上限
+				x > 0 && ln == CAGE_N_NUM_MAX && col == lc ):	# 左のケージ内数字数上限
 					diff = true
 					col = diff_color(lc, uc)
 					#add_cage(ix, num, bit)
-			if nu == 1:	# 直上が１セルだけの場合
+			if un == 1:	# 直上が１セルだけの場合
 				col = uc
 			elif y == N_VERT - 1:		# 下端の場合
-				if nl == 1 && !diff:	# 直左が１セルだけの場合
+				# undone: 最下行 && 左が１セル && 上と同じ色の場合は、左セルの色を変える？
+				if ln == 1 && uc == lc:
+					lc = diff_color($Board/CageTileMap.get_cell(x-1, y-1), $Board/CageTileMap.get_cell(x-2, y))
+					$Board/CageTileMap.set_cell(x-1, y, lc)
+				elif ln == 1 && !diff:	# 直左が１セルだけの場合
 					col = lc
 				elif x == N_HORZ - 1:	# 右端の場合
-					if( nl >= CAGE_N_NUM_MAX && nu >= CAGE_N_NUM_MAX ):
+					if( ln >= CAGE_N_NUM_MAX && un >= CAGE_N_NUM_MAX ):
 						col = diff_color(lc, uc)
-					elif nl < nu:
+					elif ln < un:
 						col = lc
 					else:
 						col = uc
-			elif y == 0 && nl == 1:	# １行目、左が１セルだけの場合
+			elif y == 0 && ln == 1:	# １行目、左が１セルだけの場合
 				if rng.randf_range(0.0, 1.0) <= 0.5:
 					col = lc
 				elif col == lc:
 					col = (col + 1) % N_COLOR
 			if col == lc && col == uc:		# 現カラーが左・上両方と同じ
-				if nl + nu < CAGE_N_NUM_MAX:		# マージしても上限を超えない
-					if cage_ix[ix-N_HORZ] != cage_ix[ix-1]:		# 上と左が異なるケージ
-						merge_cage(cage_ix[ix-1], cage_ix[ix-N_HORZ])		# 上を左にマージ
+				if ln + un < CAGE_N_NUM_MAX:		# マージしても上限を超えない
+					if( cage_ix[ix-N_HORZ] != cage_ix[ix-1] &&		# 上と左が異なるケージ
+						(ub & lb) == 0 ):			# 上と左に同じ数字が無い
+							merge_cage(cage_ix[ix-1], cage_ix[ix-N_HORZ])		# 上を左にマージ
 				else:
 					col = (col + 1) % N_COLOR		# 上・左とは異なる色に
-			#if lc == col:	# 左と同じ色の場合
-			#	if( uc == col &&	# 上と同じ色の場合
-			#		cage_ix[ix-N_HORZ] != cage_ix[ix-1] ):		# 上と左が異なるケージ
-			#			if nl + nu < CAGE_N_NUM_MAX:		# マージしても上限を超えない
-			#				merge_cage(cage_ix[ix-1], cage_ix[ix-N_HORZ])		# 上を左にマージ
-			#	add_left_cage(ix, num, bit)
 			if lc == col:	# 左と同じ色の場合
 				add_left_cage(ix, num, bit)
 			elif uc == col:	# 上と同じ色の場合
