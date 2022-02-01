@@ -79,6 +79,7 @@ var nDuplicated = 0			# 重複数字数
 #var optGrade = -1			# 問題グレード、0: 入門、1:初級、2:ノーマル（初中級）
 var diffculty = 0			# 難易度、フルハウス: 1, 隠れたシングル: 2, 裸のシングル: 10pnt？
 var num_buttons = []		# 各数字ボタンリスト [0] -> 削除ボタン、[1] -> Button1, ...
+var num_used = []			# 各数字使用数（手がかり数字＋入力数字）
 var cur_num = -1			# 選択されている数字ボタン、-1 for 選択無し
 var cur_cell_ix = -1		# 選択されているセルインデックス、-1 for 選択無し
 var input_num = 0			# 入力された数字
@@ -119,6 +120,9 @@ func _ready():
 	cage_ix.resize(N_CELLS)
 	column_used.resize(N_HORZ)
 	box_used.resize(N_HORZ)
+	memo_text.resize(N_CELLS)
+	column_used.resize(N_HORZ)
+	num_used.resize(N_HORZ + 1)		# +1 for 0
 	#
 	num_buttons.push_back($DeleteButton)
 	for i in range(N_HORZ):
@@ -377,7 +381,7 @@ func update_all_status():
 	##update_undo_redo()
 	update_cell_cursor(cur_num)
 	##update_NEmptyLabel()
-	##update_num_buttons_disabled()
+	update_num_buttons_disabled()
 	##check_duplicated()
 	##$HintButton.disabled = solvedStat
 	##$CheckButton.disabled = solvedStat
@@ -400,6 +404,13 @@ func update_all_status():
 	##$CheckButton.disabled = g.env[g.KEY_N_COINS] <= 0
 	##$HintButton.disabled = g.env[g.KEY_N_COINS] <= 0
 	##$AutoMemoButton.disabled = g.env[g.KEY_N_COINS] < AUTO_MEMO_N_COINS
+func update_num_buttons_disabled():		# 使い切った数字ボタンをディセーブル
+	#var nUsed = []		# 各数字の使用数 [0] for EMPTY
+	for i in range(N_HORZ+1): num_used[i] = 0
+	for ix in range(N_CELLS):
+		num_used[get_cell_numer(ix)] += 1
+	for i in range(N_HORZ):
+		num_buttons[i+1].disabled = num_used[i+1] >= N_HORZ
 func clear_cell_cursor():
 	for y in range(N_VERT):
 		for x in range(N_HORZ):
