@@ -22,6 +22,7 @@ const N_HORZ = 9
 const N_CELLS = N_HORZ * N_VERT
 const CELL_WIDTH = 54
 const CELL_WIDTH3 = CELL_WIDTH/3
+const CELL_WIDTH4 = CELL_WIDTH/4
 const BIT_1 = 1
 const BIT_2 = 1<<1
 const BIT_3 = 1<<2
@@ -45,15 +46,15 @@ const COLOR_INPUT = Color("#2980b9")	# VELIZE HOLE
 
 # 要素：[sum, col, ix1, ix2, ...]
 const QUEST1 = [ # by wikipeida
-	[3, 0, 0, 1], [15, 1, 2, 3, 4], [22, 2, 5, 13, 14, 22], [4, 1, 6, 15], [16, 0, 7, 16], [15, 1, 8, 17, 26, 35],
-	[25, 2, 9, 10, 18, 19], [17, 3, 11, 12],
-	[9, 0, 20, 21, 30], [8, 1, 23, 32, 41], [20, 2, 24, 25, 33],
-	[6, 0, 27, 36], [14, 3, 28, 29], [17, 3, 31, 40, 49], [17, 3, 34, 42, 43],
-	[13, 1, 37, 38, 46], [20, 2, 39, 48, 57], [12, 0, 44, 53],
-	[27, 2, 45, 54, 63, 72], [6, 0, 47, 55, 56], [20, 0, 50, 59, 60], [6, 2, 51, 52],
-	[10, 1, 58, 66, 67, 75], [14, 1, 61, 62, 70, 71],
-	[8, 1, 64, 73], [16, 3, 65, 74], [15, 3, 68, 69],
-	[13, 0, 76, 77, 78], [17, 2, 79, 80],
+	[3, 0, 1], [15, 2, 3, 4], [22, 5, 13, 14, 22], [4, 6, 15], [16, 7, 16], [15, 8, 17, 26, 35],
+	[25, 9, 10, 18, 19], [17, 11, 12],
+	[9, 20, 21, 30], [8, 23, 32, 41], [20, 24, 25, 33],
+	[6, 27, 36], [14, 28, 29], [17, 31, 40, 49], [17, 34, 42, 43],
+	[13, 37, 38, 46], [20, 39, 48, 57], [12, 44, 53],
+	[27, 45, 54, 63, 72], [6, 47, 55, 56], [20, 50, 59, 60], [6, 51, 52],
+	[10, 58, 66, 67, 75], [14, 61, 62, 70, 71],
+	[8, 64, 73], [16, 65, 74], [15, 68, 69],
+	[13, 76, 77, 78], [17, 79, 80],
 ]
 
 var symmetric = true		# 対称形問題
@@ -180,7 +181,7 @@ func init_labels():
 				for h in range(3):
 					label = MemoLabel.instance()
 					lst.push_back(label)
-					label.rect_position = Vector2(px + CELL_WIDTH3*h, py + CELL_WIDTH3*v)
+					label.rect_position = Vector2(px + CELL_WIDTH4*(h+1)-3, py + CELL_WIDTH4*(v+1)-3)
 					label.text = String(v*3+h+1)
 					$Board.add_child(label)
 			memo_labels.push_back(lst)
@@ -191,14 +192,14 @@ func set_quest(cages):
 	#var col = 0
 	for cix in range(cages.size()):
 		var item = cages[cix]			# [sum, col, ix1, ix2, ... ]
-		cage_labels[item[2]].text = String(item[0])
-		var x1 = item[2] % N_HORZ
-		var y1 = item[2] / N_HORZ
+		cage_labels[item[1]].text = String(item[0])
+		var x1 = item[1] % N_HORZ
+		var y1 = item[1] / N_HORZ
 		#while( $Board/CageTileMap.get_cell(x1, y1-1) == col || $Board/CageTileMap.get_cell(x1-1, y1) == col ||
 		#		$Board/CageTileMap.get_cell(x1, y1+1) == col || $Board/CageTileMap.get_cell(x1+1, y1) == col ):
 		#	col = (col + 1) % N_COLOR
-		var col = item[1]
-		for k in range(2, item.size()):
+		#var col = item[1]
+		for k in range(1, item.size()):
 			cage_ix[item[k]] = cix
 			#var x = item[k] % N_HORZ
 			#var y = item[k] / N_HORZ
@@ -375,8 +376,8 @@ func update_cell_cursor(num):		# 選択数字ボタンと同じ数字セルを�
 					for h in range(3):
 						var n = v * 3 + h + 1
 						var t = TILE_NONE
-						##if memo_labels[ix][n-1].text == num_str:
-						##	t = TILE_CURSOR
+						if memo_labels[ix][n-1].text == num_str:
+							t = TILE_CURSOR
 						##$Board/MemoTileMap.set_cell(x*3+h, y*3+v, t)
 	else:
 		for y in range(N_VERT):
@@ -500,10 +501,10 @@ func _input(event):
 					#push_to_undo_stack([UNDO_TYPE_CELL, ix, int(input_labels[ix].text), 0, [], 0])		# ix, old, new
 					input_labels[ix].text = ""
 				else:
-					##for i in range(N_HORZ):
-					#	if memo_labels[ix][i].text != "":
+					for i in range(N_HORZ):
+						if memo_labels[ix][i].text != "":
 					#		add_falling_memo(int(memo_labels[ix][i].text), ix)
-					#		memo_labels[ix][i].text = ""	# メモ数字削除
+							memo_labels[ix][i].text = ""	# メモ数字削除
 					pass
 			# 数字ボタン選択状態の場合 → セルにその数字を入れる or メモ数字反転
 			elif !memo_mode:
@@ -519,7 +520,7 @@ func _input(event):
 					#var mb = get_memo_bits(ix)
 					#push_to_undo_stack([UNDO_TYPE_CELL, ix, int(input_labels[ix].text), input_num, lst, mb])
 					input_labels[ix].text = num_str
-				##for i in range(N_HORZ): memo_labels[ix][i].text = ""	# メモ数字削除
+				for i in range(N_HORZ): memo_labels[ix][i].text = ""	# メモ数字削除
 				pass
 		update_all_status()
 		sound_effect()
