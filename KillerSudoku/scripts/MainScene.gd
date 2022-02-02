@@ -110,6 +110,7 @@ var rng = RandomNumberGenerator.new()
 var CageLabel = load("res://CageLabel.tscn")
 var ClueLabel = load("res://ClueLabel.tscn")
 var InputLabel = load("res://InputLabel.tscn")
+var MemoLabel = load("res://MemoLabel.tscn")
 
 func _ready():
 	if false:
@@ -173,6 +174,16 @@ func init_labels():
 			label.rect_position = Vector2(px, py + 2)
 			label.text = ""
 			$Board.add_child(label)
+			# 候補数字用ラベル
+			var lst = []
+			for v in range(3):
+				for h in range(3):
+					label = MemoLabel.instance()
+					lst.push_back(label)
+					label.rect_position = Vector2(px + CELL_WIDTH3*h, py + CELL_WIDTH3*v)
+					label.text = String(v*3+h+1)
+					$Board.add_child(label)
+			memo_labels.push_back(lst)
 func set_quest(cages):
 	for y in range(N_VERT):
 		for x in range(N_HORZ):
