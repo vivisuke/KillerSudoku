@@ -182,9 +182,32 @@ func init_labels():
 					label = MemoLabel.instance()
 					lst.push_back(label)
 					label.rect_position = Vector2(px + CELL_WIDTH4*(h+1)-3, py + CELL_WIDTH4*(v+1)-3)
-					label.text = String(v*3+h+1)
+					label.text = ""		#String(v*3+h+1)
 					$Board.add_child(label)
 			memo_labels.push_back(lst)
+func init_cell_bit():		# clue_labels, input_labels から 各セルの cell_bit 更新
+	for ix in range(N_CELLS):
+		var n = get_cell_numer(ix)
+		if n == 0:
+			cell_bit[ix] = 0
+		else:
+			cell_bit[ix] = num_to_bit(n)
+func init_candidates():		# cell_bit から各セルの候補数字計算
+	for i in range(N_CELLS):
+		candidates_bit[i] = ALL_BITS if cell_bit[i] == 0 else 0
+	for y in range(N_VERT):
+		for x in range(N_HORZ):
+			var b = cell_bit[xyToIX(x, y)]
+			if b != 0:
+				for t in range(N_HORZ):
+					candidates_bit[xyToIX(t, y)] &= ~b
+					candidates_bit[xyToIX(x, t)] &= ~b
+				var x0 = x - x % 3		# 3x3ブロック左上位置
+				var y0 = y - y % 3
+				for v in range(3):
+					for h in range(3):
+						candidates_bit[xyToIX(x0 + h, y0 + v)] &= ~b
+	pass
 func set_quest(cages):
 	for y in range(N_VERT):
 		for x in range(N_HORZ):
@@ -470,6 +493,33 @@ func do_emphasize(ix : int, type, fullhouse):
 	pass
 func add_falling_char(num_str, ix : int):
 	pass
+func add_falling_memo(num : int, ix : int):
+	pass
+func remove_memo_num(ix : int, num : int):		# ix に num を入れたときに、メモ数字削除
+	var lst = []
+	var x = ix % N_HORZ
+	var y = ix / N_HORZ
+	for h in range(N_HORZ):
+		var ix2 = xyToIX(h, y)
+		if memo_labels[ix2][num-1].text != "":
+			add_falling_memo(num, ix2)
+			memo_labels[ix2][num-1].text = ""
+			lst.push_back(ix2)
+		ix2 = xyToIX(x, h)
+		if memo_labels[ix2][num-1].text != "":
+			add_falling_memo(num, ix2)
+			memo_labels[ix2][num-1].text = ""
+			lst.push_back(ix2)
+	var x0 = x - x % 3
+	var y0 = y - y % 3
+	for v in range(3):
+		for h in range(3):
+			var ix2 = xyToIX(x0 + h, y0 + v)
+			if memo_labels[ix2][num-1].text != "":
+				add_falling_memo(num, ix2)
+				memo_labels[ix2][num-1].text = ""
+				lst.push_back(ix2)
+	return lst
 func _input(event):
 	if menuPopuped: return
 	if event is InputEventMouseButton && event.is_pressed():
@@ -516,7 +566,7 @@ func _input(event):
 					input_labels[ix].text = ""
 				else:	# 上書き
 					input_num = int(cur_num)
-					#var lst = remove_memo_num(ix, cur_num)
+					var lst = remove_memo_num(ix, cur_num)
 					#var mb = get_memo_bits(ix)
 					#push_to_undo_stack([UNDO_TYPE_CELL, ix, int(input_labels[ix].text), input_num, lst, mb])
 					input_labels[ix].text = num_str
@@ -574,5 +624,56 @@ func _on_Button9_toggled(button_pressed):
 	num_button_pressed(9, button_pressed)
 
 
+func get_memo():
+	var lst = []
+	for ix in range(N_CELLS):
+		var bits = 0	
+		if get_cell_numer(ix) == 0:		# 数字が入っていない場合
+			var mask = BIT_1
+			for i in range(N_HORZ):
+				if memo_labels[ix][i].text != "": bits |= mask
+				mask <<= 1
+		lst.push_back(bits)
+	return lst
+func is_same_memo(lst):	# candidates_bit[] と lst[] を比較
+	for i in range(N_CELLS):
+		if lst[i] != candidates_bit[i]:
+			return false;
+	return true
+func do_auto_memo():
+	init_cell_bit()
+	init_candidates()		# 可能候補数字計算 → candidates_bit[]
+	var lst0 = get_memo()
+	if is_same_memo(lst0): return []	# 既に正しい候補数字が入っている場合
+	#var lst = []
+	for ix in range(N_CELLS):
+		#var bits = 0		# 以前の状態
+		if get_cell_numer(ix) != 0:		# 数字が入っている場合
+			for i in range(N_HORZ):
+				memo_labels[ix][i].text = ""
+		else:							# 数字が入っていない場合
+			var mask = BIT_1
+			for i in range(N_HORZ):
+				#if memo_labels[ix][i].text != "": bits |= mask
+				if (candidates_bit[ix] & mask) != 0:
+					memo_labels[ix][i].text = String(i+1)
+				else:
+					memo_labels[ix][i].text = ""
+				mask <<= 1
+		#lst.push_back(bits)
+	return lst0
 func _on_AutoMemoButton_pressed():
-	pass # Replace with function body.
+	if paused: return		# ポーズ中
+	if qCreating: return	# 問題生成中
+	##if g.env[g.KEY_N_COINS] < AUTO_MEMO_N_COINS: return
+	var lst = do_auto_memo()
+	if lst == []: return
+	##for i in range(AUTO_MEMO_N_COINS):
+	##	add_falling_coin()
+	##g.env[g.KEY_N_COINS] -= AUTO_MEMO_N_COINS
+	##$CoinButton/NCoinLabel.text = String(g.env[g.KEY_N_COINS])
+	##g.save_environment()
+	##push_to_undo_stack([UNDO_TYPE_AUTO_MEMO, lst])
+	##update_all_status()
+	##g.auto_save(true, get_cell_state())
+	pass
