@@ -7,6 +7,10 @@ enum {
 	CELL,
 }
 enum {
+	CAGE_SUM = 0,			# ケージ内数字合計
+	CAGE_IX_LIST,			# ケージ内セル位置配列
+}
+enum {
 	#IX_CAGE_COLOR = 0,		# ケージ背景色、0, 1, 2, 3
 	IX_CAGE_TOP_LEFT = 0,	# ケージ左上位置
 	IX_CAGE_N,				# ケージ内数字数
@@ -43,8 +47,30 @@ const COLOR_INCORRECT = Color.red
 const COLOR_DUP = Color.red
 const COLOR_CLUE = Color.black
 const COLOR_INPUT = Color("#2980b9")	# VELIZE HOLE
+const LVL_BEGINNER = 0
+const LVL_EASY = 1
+const LVL_NORMAL = 2
+const AUTO_MEMO_N_COINS = 3				# 自動メモ消費コイン数
 
-# 要素：[sum, col, ix1, ix2, ...]
+const CAGE_TABLE = [
+	[	0b000000000, 0b000000000, 0b000000011, 0b000000101, 0b000001111,	# for 1, 2, ... 5
+		0b000011011, 0b000111111, 0b001110111, 0b011111111, 0b111101111, 	# for 6, 7, ... 10
+		0b111111110, 0b111011100, 0b111111000, 0b110110000, 0b111100000,	# for 11, 12, ... 15
+		0b101000000, 0b110000000, ],										# for 16, 17
+	[	0b000000000, 0b000000000, 0b000000000, 0b000000000, 0b000000000,	# for 1, 2, ... 5
+		0b000000111, 0b000001011, 0b000011111, 0b000111111, 0b001111111,	# for 6, 7, ... 10
+		0b011111111, 0b111111111, 0b111111111, 0b111111111, 0b111111111,	# for 11, 12, ... 15
+		0b111111111, 0b111111111, 0b111111111, 0b111111110, 0b111111100,	# for 16, 17, ... 20
+		0b111111000, 0b111110000, 0b110100000, 0b111000000, ],				# for 21, 22, ... 24
+	[	0b000000000, 0b000000000, 0b000000000, 0b000000000, 0b000000000,	# for 1, 2, ... 5
+		0b000000000, 0b000000000, 0b000000000, 0b000000000, 0b000001111,	# for 6, 7, ... 10
+		0b000010111, 0b000111111, 0b001111111, 0b011111111, 0b111111111,	# for 11, 12, ... 15
+		0b111111111, 0b111111111, 0b111111111, 0b111111111, 0b111111111,	# for 16, 17, ... 20
+		0b111111111, 0b111111111, 0b111111111, 0b111111111, 0b111111111,	# for 21, 22, ... 25
+		0b111111110, 0b111111100, 0b111111000, 0b111010000, 0b111100000, ],	# for 26, 27, ... 30
+]
+
+# 要素：[sum, ix1, ix2, ...]
 const QUEST1 = [ # by wikipeida
 	[3, 0, 1], [15, 2, 3, 4], [22, 5, 13, 14, 22], [4, 6, 15], [16, 7, 16], [15, 8, 17, 26, 35],
 	[25, 9, 10, 18, 19], [17, 11, 12],
@@ -89,15 +115,19 @@ var cur_num = -1			# 選択されている数字ボタン、-1 for 選択無し
 var cur_cell_ix = -1		# 選択されているセルインデックス、-1 for 選択無し
 var input_num = 0			# 入力された数字
 var nRemoved
+var nAnswer = 0				# 解答数
 
 var cage_labels = []		# ケージ合計数字用ラベル配列
 var clue_labels = []		# 手がかり数字用ラベル配列
 var input_labels = []		# 入力数字用ラベル配列
 var ans_bit = []			# 解答の各セル数値（0 | BIT_1 | BIT_2 | ... | BIT_9）
+var ans_num = []			# 解答の各セル数値、1～N_HORZ
 var cell_bit = []			# 各セル数値（0 | BIT_1 | BIT_2 | ... | BIT_9）
+var quest_cages = []		# クエストケージリスト配列、要素：[sum, ix1, ix2, ...]
 var cage_list = []			# ケージリスト配列、要素：IX_CAGE_XXX
 var cage_ix = []			# 各セルのケージリスト配列インデックス
 var candidates_bit = []		# 入力可能ビット論理和
+var line_used = []			# 各行の使用済みビット
 var column_used = []		# 各カラムの使用済みビット
 var box_used = []			# 各3x3ブロックの使用済みビット
 var memo_labels = []		# メモ（候補数字）用ラベル配列（２次元）
@@ -112,6 +142,11 @@ var CageLabel = load("res://CageLabel.tscn")
 var ClueLabel = load("res://ClueLabel.tscn")
 var InputLabel = load("res://InputLabel.tscn")
 var MemoLabel = load("res://MemoLabel.tscn")
+var FallingChar = load("res://FallingChar.tscn")
+var FallingMemo = load("res://FallingMemo.tscn")
+var FallingCoin = load("res://FallingCoin.tscn")
+
+onready var g = get_node("/root/Global")
 
 func _ready():
 	if false:
@@ -139,7 +174,161 @@ func _ready():
 	#show_clues()	# 手がかり数字表示
 	#gen_cage()
 	set_quest(QUEST1)
+	#gen_quest()
 	pass
+func gen_quest():
+	# undone: 問題集以外の場合対応
+	#if g.todaysQuest:		# 今日の問題の場合
+	#	g.qLevel += 1
+	#	if g.qLevel > 2: g.qLevel = 0
+	#elif g.qNumber == 0:		# 問題自動生成の場合
+	#	g.qRandom = true		# 
+	#	gen_qName()
+	#else:					# 問題集の場合
+	#	g.qNumber += 1
+	#	g.qName = "%06d" % g.qNumber
+	if g.qNumber != 0:	# 問題集の場合
+		$NextButton.disabled = g.qNumber > g.nSolved[g.qLevel]
+	elif !g.todaysQuest:		# ランダム生成の場合
+		if g.qName == "":
+			gen_qName()
+			$TitleBar/Label.text = titleText()
+	var stxt = g.qName+String(g.qLevel)
+	if g.qNumber != 0: stxt += "Q"
+	seed(stxt.hash())
+	rng.set_seed(stxt.hash())
+	while true:
+		gen_ans()
+		gen_cages()
+		if g.qLevel == LVL_BEGINNER:
+			if count_n_cell_cage(1) < 8:
+				continue			# 再生成
+		#	#split_2cell_cage()		# 1セルケージ数が４未満なら２セルケージを分割
+		#el
+		if g.qLevel == LVL_NORMAL:
+			merge_2cell_cage()
+			#if count_n_cell_cage(3) <= 3:
+			#merge_2cell_cage()
+		#print_cages()
+		#gen_cages_3x2()		# 3x2 単位で分割
+		#break
+		#ans_bit = cell_bit.duplicate()
+		#break
+		if is_proper_quest():
+			break
+	#print_ans()
+	fill_1cell_cages()
+	update_cages_sum_labels()
+	solvedStat = false
+	g.elapsedTime = 0.0
+	#ans_bit = cell_bit.duplicate()
+	#print_ans()
+	print_ans_num()
+func is_proper_quest() -> bool:
+	nAnswer = 0
+	for ix in range(N_CELLS): cell_bit[ix] = 0
+	for ix in range(N_HORZ):
+		line_used[ix] = 0
+		column_used[ix] = 0
+		box_used[ix] = 0
+	#ipq_sub(0, 0, 0, 0)
+	return nAnswer == 1
+func print_cages():
+	for i in range(cage_list.size()):
+		print(cage_list[i])
+func merge_2cell_cage():	# 2セルケージ２つをマージし4セルに
+	#print_cages()
+	while true:
+		var ix = rng.randi_range(0, N_CELLS-1)
+		var cix = cage_ix[ix]
+		if cage_list[cix][CAGE_IX_LIST].size() != 2: continue
+		var lst2 = []
+		var x = ix % N_HORZ
+		var y = ix / N_HORZ
+		if y != 0:
+			var i2 = xyToIX(x, y-1)
+			if cage_ix[i2] != cix && cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 2:
+				lst2.push_back(i2)
+		if x != 0:
+			var i2 = xyToIX(x-1, y)
+			if cage_ix[i2] != cix && cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 2:
+				lst2.push_back(i2)
+		if x != N_HORZ-1:
+			var i2 = xyToIX(x+1, y)
+			if cage_ix[i2] != cix && cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 2:
+				lst2.push_back(i2)
+		if y != N_VERT-1:
+			var i2 = xyToIX(x, y+1)
+			if cage_ix[i2] != cix && cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 2:
+				lst2.push_back(i2)
+		if lst2.empty(): continue
+		var ix2 = lst2[0] if lst2.size() == 1 else lst2[rng.randi_range(0, lst2.size() - 1)]
+		var cix2 = cage_ix[ix2]
+		#print("cix = ", cage_list[cix])
+		#print("cix2 = ", cage_list[cix2])
+		for i in range(cage_list[cix2][CAGE_IX_LIST].size()):
+			cage_ix[cage_list[cix2][CAGE_IX_LIST][i]] = cix
+		cage_list[cix][CAGE_IX_LIST] += cage_list[cix2][CAGE_IX_LIST]
+		cage_list[cix][CAGE_SUM] += cage_list[cix2][CAGE_SUM]
+		cage_list[cix2] = [0, []]
+		#print_cages()
+		return
+func gen_cages():
+	pass
+func count_n_cell_cage(n):
+	var cnt = 0
+	for i in range(cage_list.size()):
+		if cage_list[i][CAGE_IX_LIST].size() == n: cnt += 1
+	return cnt
+func find_2cell_cage():		# 2セルケージを探す
+	while true:
+		var ix = rng.randi_range(0, cage_list.size() - 1)
+		if cage_list[ix][CAGE_IX_LIST].size() == 2:
+			return ix
+func split_2cell_cage():		# 1セルケージ数が４未満なら２セルケージを分割
+	if count_n_cell_cage(1) >= 4: return
+	var cix = find_2cell_cage()		# 2セルケージを探す
+	var cage = cage_list[cix]
+	var ix2 = cage[CAGE_IX_LIST][1]		# ２番めの要素
+	cage_ix[ix2] = cage_list.size()
+	var t = [bit_to_num(cell_bit[ix2]), [ix2]]
+	cage_list.push_back(t)
+	var ix1 = cage[CAGE_IX_LIST][0]		# 1番めの要素
+	cage = [bit_to_num(cell_bit[ix1]), [ix1]]
+	#update_cages_sum_labels()
+	cage_labels[ix1].text = String(get_cell_numer(ix1))
+	cage_labels[ix2].text = String(get_cell_numer(ix2))
+func fill_1cell_cages():
+	for ci in range(cage_list.size()):
+		var cage = cage_list[ci]
+		if cage[CAGE_IX_LIST].size() == 1:
+			var ix = cage[CAGE_IX_LIST][0]
+			cell_bit[ix] = num_to_bit(cage[CAGE_SUM])
+			input_labels[ix].text = String(cage[CAGE_SUM])
+func update_cages_sum_labels():
+	for ix in range(cage_list.size()):
+		var item = cage_list[ix]
+		var sum = item[CAGE_SUM]
+		var lst = item[CAGE_IX_LIST]
+		if sum != 0:
+			cage_labels[lst.min()].text = String(sum)
+func gen_qName():
+	g.qRandom = true
+	g.qName = ""
+	rng.randomize()
+	for i in range(15):
+		var r = rng.randi_range(0, 10+26-1)
+		if r < 10: g.qName += String(r+1)
+		else: g.qName += "%c" % (r - 10 + 0x61)		# 0x61 is 'a'
+func classText() -> String:
+	if g.qLevel == LVL_BEGINNER: return "【入門】"
+	elif g.qLevel == 1: return "【初級】"
+	elif g.qLevel == 2: return "【初中級】"
+	return ""
+func titleText() -> String:
+	var tt = classText()
+	#elif g.qLevel == LVL_NOT_SYMMETRIC: tt = "【非対称】"
+	return tt + "“" + g.qName + "”"
 func xyToIX(x, y) -> int: return x + y * N_HORZ
 func num_to_bit(n : int): return 1 << (n-1) if n != 0 else 0
 func bit_to_num(b):
@@ -209,6 +398,7 @@ func init_candidates():		# cell_bit から各セルの候補数字計算
 						candidates_bit[xyToIX(x0 + h, y0 + v)] &= ~b
 	pass
 func set_quest(cages):
+	quest_cages = cages
 	for y in range(N_VERT):
 		for x in range(N_HORZ):
 			$Board/CageTileMap.set_cell(x, y, -1)
@@ -278,7 +468,7 @@ func gen_ans():		# 解答生成
 	gen_ans_sub(N_HORZ, 0)
 	print_cells()
 	#update_cell_labels()
-	ans_bit = cell_bit.duplicate()
+	#ans_bit = cell_bit.duplicate()
 	for i in range(N_CELLS): input_labels[i].text = ""		# 入力ラベル全消去
 	pass
 func print_cells():
@@ -287,6 +477,16 @@ func print_cells():
 		var lst = []
 		for x in range(N_HORZ):
 			lst.push_back(bit_to_num(cell_bit[ix]))
+			ix += 1
+		print(lst)
+	print("")
+func print_ans_num():
+	print("ans_num:")
+	var ix = 0
+	for y in range(N_VERT):
+		var lst = []
+		for x in range(N_HORZ):
+			lst.push_back(ans_num[ix])
 			ix += 1
 		print(lst)
 	print("")
@@ -640,10 +840,22 @@ func is_same_memo(lst):	# candidates_bit[] と lst[] を比較
 		if lst[i] != candidates_bit[i]:
 			return false;
 	return true
+func cage_bits(item):
+	#var bits = 0
+	var sum = item[0]
+	var nc = item.size() - 1	# セル数
+	if nc == 1:
+		return num_to_bit(sum)
+	else:
+		return CAGE_TABLE[nc-2][sum-1]
+	#if nc <= 3:
+	#	return CAGE_TABLE[nc-2][sum-1]
+	#return bits
+	#return 0x1ff
 func do_auto_memo():
 	init_cell_bit()
 	init_candidates()		# 可能候補数字計算 → candidates_bit[]
-	var lst0 = get_memo()
+	var lst0 = get_memo()	# 現在の候補数字状態
 	if is_same_memo(lst0): return []	# 既に正しい候補数字が入っている場合
 	#var lst = []
 	for ix in range(N_CELLS):
@@ -661,7 +873,19 @@ func do_auto_memo():
 					memo_labels[ix][i].text = ""
 				mask <<= 1
 		#lst.push_back(bits)
-	return lst0
+	for i in range(quest_cages.size()):
+		var bits = cage_bits(quest_cages[i])
+		print(quest_cages[i], ": ", bits)
+		for k in range(1, quest_cages[i].size()):
+			var ix = quest_cages[i][k]
+			var mask = BIT_1
+			for b in range(N_HORZ):
+				if (bits & mask) == 0:
+					memo_labels[ix][b].text = ""
+				mask <<= 1
+			
+		pass
+	return lst0		# 元の候補数字状態を返す
 func _on_AutoMemoButton_pressed():
 	if paused: return		# ポーズ中
 	if qCreating: return	# 問題生成中
