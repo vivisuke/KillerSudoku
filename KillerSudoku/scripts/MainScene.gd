@@ -1036,3 +1036,12 @@ func _on_AutoMemoButton_pressed():
 	##update_all_status()
 	##g.auto_save(true, get_cell_state())
 	pass
+
+func _on_BackButton_pressed():
+	g.auto_save(false, [])
+	if g.todaysQuest:
+		get_tree().change_scene("res://TodaysQuest.tscn")
+	elif g.qNumber == 0:
+		get_tree().change_scene("res://TopScene.tscn")
+	else:
+		get_tree().change_scene("res://LevelScene.tscn")

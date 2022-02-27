@@ -214,13 +214,16 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="TextureButton" type="TextureButton" parent="TitleBar"]
+[node name="BackButton" type="TextureButton" parent="TitleBar"]
 margin_left = 1.0
 margin_top = 1.0
 margin_right = 49.0
 margin_bottom = 49.0
 texture_normal = ExtResource( 2 )
 texture_pressed = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Label" type="Label" parent="TitleBar"]
 margin_left = 49.0
@@ -809,6 +812,7 @@ stream = ExtResource( 44 )
 [node name="AudioSolved" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource( 45 )
 
+[connection signal="pressed" from="TitleBar/BackButton" to="." method="_on_BackButton_pressed"]
 [connection signal="toggled" from="Button1" to="." method="_on_Button1_toggled"]
 [connection signal="toggled" from="Button2" to="." method="_on_Button2_toggled"]
 [connection signal="toggled" from="Button3" to="." method="_on_Button3_toggled"]
