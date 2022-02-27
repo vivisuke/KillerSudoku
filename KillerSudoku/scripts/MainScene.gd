@@ -51,6 +51,7 @@ const LVL_BEGINNER = 0
 const LVL_EASY = 1
 const LVL_NORMAL = 2
 const AUTO_MEMO_N_COINS = 3				# 自動メモ消費コイン数
+const MIN_1CELL_CAGE = 14
 
 const CAGE_TABLE = [
 	[	0b000000000, 0b000000000, 0b000000011, 0b000000101, 0b000001111,	# for 1, 2, ... 5
@@ -202,7 +203,7 @@ func gen_quest():
 		gen_ans()
 		gen_cages()
 		if g.qLevel == LVL_BEGINNER:
-			if count_n_cell_cage(1) < 8:
+			if count_n_cell_cage(1) < MIN_1CELL_CAGE:
 				##continue			# 再生成
 				pass
 		#	#split_2cell_cage()		# 1セルケージ数が４未満なら２セルケージを分割
@@ -226,7 +227,7 @@ func gen_quest():
 	#ans_bit = cell_bit.duplicate()
 	#print_ans()
 	print_ans_num()
-	print_cages()
+	#print_cages()
 func is_proper_quest() -> bool:
 	nAnswer = 0
 	for ix in range(N_CELLS): cell_bit[ix] = 0
