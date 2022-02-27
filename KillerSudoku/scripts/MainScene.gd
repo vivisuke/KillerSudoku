@@ -120,7 +120,7 @@ var nAnswer = 0				# 解答数
 var cage_labels = []		# ケージ合計数字用ラベル配列
 var clue_labels = []		# 手がかり数字用ラベル配列
 var input_labels = []		# 入力数字用ラベル配列
-var ans_bit = []			# 解答の各セル数値（0 | BIT_1 | BIT_2 | ... | BIT_9）
+#var ans_bit = []			# 解答の各セル数値（0 | BIT_1 | BIT_2 | ... | BIT_9）
 var ans_num = []			# 解答の各セル数値、1～N_HORZ
 var cell_bit = []			# 各セル数値（0 | BIT_1 | BIT_2 | ... | BIT_9）
 var quest_cages = []		# クエストケージリスト配列、要素：[sum, ix1, ix2, ...]
@@ -157,6 +157,7 @@ func _ready():
 		seed(sd)
 		rng.set_seed(sd)
 	cell_bit.resize(N_CELLS)
+	ans_num.resize(N_CELLS)
 	candidates_bit.resize(N_CELLS)
 	cage_ix.resize(N_CELLS)
 	column_used.resize(N_HORZ)
@@ -173,8 +174,8 @@ func _ready():
 	#gen_ans()
 	#show_clues()	# 手がかり数字表示
 	#gen_cage()
-	set_quest(QUEST1)
-	#gen_quest()
+	#set_quest(QUEST1)
+	gen_quest()
 	pass
 func gen_quest():
 	# undone: 問題集以外の場合対応
@@ -202,7 +203,8 @@ func gen_quest():
 		gen_cages()
 		if g.qLevel == LVL_BEGINNER:
 			if count_n_cell_cage(1) < 8:
-				continue			# 再生成
+				##continue			# 再生成
+				pass
 		#	#split_2cell_cage()		# 1セルケージ数が４未満なら２セルケージを分割
 		#el
 		if g.qLevel == LVL_NORMAL:
@@ -213,9 +215,9 @@ func gen_quest():
 		#gen_cages_3x2()		# 3x2 単位で分割
 		#break
 		#ans_bit = cell_bit.duplicate()
-		#break
-		if is_proper_quest():
-			break
+		break
+		#if is_proper_quest():
+		#	break
 	#print_ans()
 	fill_1cell_cages()
 	update_cages_sum_labels()
@@ -224,6 +226,7 @@ func gen_quest():
 	#ans_bit = cell_bit.duplicate()
 	#print_ans()
 	print_ans_num()
+	print_cages()
 func is_proper_quest() -> bool:
 	nAnswer = 0
 	for ix in range(N_CELLS): cell_bit[ix] = 0
@@ -273,7 +276,137 @@ func merge_2cell_cage():	# 2セルケージ２つをマージし4セルに
 		cage_list[cix2] = [0, []]
 		#print_cages()
 		return
+func sel_from_lst(ix, lst):		# lst からひとつを選ぶ
+	if g.qLevel != LVL_NORMAL:
+		return lst[rng.randi_range(0, lst.size() - 1)]
+	var n = get_cell_numer(ix)
+	if n <= 3:		# 3以下の場合は、最大のものを選ぶ
+		var mx = 0
+		var mxi = 0
+		for i in range(lst.size()):
+			var n2 = get_cell_numer(lst[i])
+			if n2 > mx:
+				mx = n2
+				mxi = i
+		return lst[mxi]
+	else:		# 4以上の場合は、最小のものを選ぶ
+		var mn = N_HORZ + 1
+		var mni = 0
+		for i in range(lst.size()):
+			var n2 = get_cell_numer(lst[i])
+			if n2 < mn:
+				mn = n2
+				mni = i
+		return lst[mni]
 func gen_cages():
+	for i in range(N_CELLS): cage_labels[i].text = ""
+	cage_list = []
+	# 4隅を風車風に２セルケージに分ける
+	if rng.randf_range(0.0, 1.0) < 0.5:
+		cage_list.push_back([0, [0, 1]])
+		var ix0 = N_HORZ-1
+		cage_list.push_back([0, [ix0, ix0+N_HORZ]])
+		ix0 = N_HORZ * (N_VERT - 1)
+		cage_list.push_back([0, [ix0, ix0-N_HORZ]])
+		ix0 = N_CELLS - 1
+		cage_list.push_back([0, [ix0, ix0-1]])
+	else:
+		cage_list.push_back([0, [0, N_HORZ]])
+		var ix0 = N_HORZ-1
+		cage_list.push_back([0, [ix0, ix0-1]])
+		ix0 = N_HORZ * (N_VERT - 1)
+		cage_list.push_back([0, [ix0, ix0+1]])
+		ix0 = N_CELLS - 1
+		cage_list.push_back([0, [ix0, ix0-N_HORZ]])
+	for i in range(cage_ix.size()): cage_ix[i] = -1
+	for ix in range(cage_list.size()):
+		var lst = cage_list[ix][1]
+		for k in range(lst.size()): cage_ix[lst[k]] = ix
+	# undone: 入門問題の場合は１セルケージを8つ、初級の場合は２つ生成
+	if g.qLevel < LVL_NORMAL:
+		var cnt = 4 if g.qLevel == LVL_BEGINNER else 2
+		while cnt > 0:
+			var ix = rng.randi_range(0, N_CELLS-1)
+			if cage_ix[ix] >= 0: continue
+			cage_ix[ix] = cage_list.size()
+			cage_list.push_back([0, [ix]])
+			cnt -= 1
+	#
+	var ar = []
+	for ix in range(N_CELLS): ar.push_back(ix)
+	ar.shuffle()
+	for i in range(ar.size()):
+		var ix = ar[i]
+		if cage_ix[ix] < 0:	# 未分割の場合
+			if false:
+			#if g.qLevel == LVL_BEGINNER && i >= ar.size() - N_HORZ*2.2:
+			#if g.qLevel == LVL_BEGINNER && rng.randf_range(0.0, 1.0) < 0.1:
+				cage_ix[ix] = cage_list.size()
+				cage_list.push_back([0, [ix]])
+			else:
+				var x = ix % N_HORZ
+				var y = ix / N_HORZ
+				var lst0 = []	# 空欄リスト
+				var lst1 = []	# １セルケージリスト
+				var lst2 = []	# ２セルケージリスト
+				if y != 0:
+					var i2 = xyToIX(x, y-1)
+					if cage_ix[i2] < 0: lst0.push_back(i2)	# 空欄の場合
+					elif cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 1: lst1.push_back(i2)
+					elif cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 2: lst2.push_back(i2)
+				if x != 0:
+					var i2 = xyToIX(x-1, y)
+					if cage_ix[i2] < 0: lst0.push_back(i2)	# 空欄の場合
+					elif cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 1: lst1.push_back(i2)
+					elif cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 2: lst2.push_back(i2)
+				if x != N_HORZ-1:
+					var i2 = xyToIX(x+1, y)
+					if cage_ix[i2] < 0: lst0.push_back(i2)	# 空欄の場合
+					elif cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 1: lst1.push_back(i2)
+					elif cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 2: lst2.push_back(i2)
+				if y != N_VERT-1:
+					var i2 = xyToIX(x, y+1)
+					if cage_ix[i2] < 0: lst0.push_back(i2)	# 空欄の場合
+					elif cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 1: lst1.push_back(i2)
+					elif cage_list[cage_ix[i2]][CAGE_IX_LIST].size() == 2: lst2.push_back(i2)
+				#if ix == 13 || ix == 14:
+				#	print("ix = ", ix)
+				if !lst0.empty():	# ４近傍に未分割セルがある場合
+					#var ix2 = lst0[0] if lst0.size() == 1 else lst0[rng.randi_range(0, lst0.size() - 1)]
+					var ix2 = lst0[0] if lst0.size() == 1 else sel_from_lst(ix, lst0)
+					#cage_list.back()[1].push_back(i2)
+					cage_ix[ix] = cage_list.size()
+					cage_ix[ix2] = cage_list.size()
+					cage_list.push_back([0, [ix, ix2]])
+				#if !lst1.empty():	# ４近傍に1セルケージがある場合
+				#	# 1セルのケージに ix をマージ
+				#	var i2 = lst1[0] if lst1.size() == 1 else lst1[rng.randi_range(0, lst1.size() - 1)]
+				#	var lstx = cage_ix[i2]
+				#	cage_list[lstx][CAGE_IX_LIST].push_back(ix)
+				#	cage_ix[ix] = lstx
+				elif !lst2.empty() && g.qLevel != LVL_BEGINNER:	# ４近傍に２セルのケージがある場合
+					# ２セルのケージに ix をマージ
+					var i2 = lst2[0] if lst2.size() == 1 else lst2[rng.randi_range(0, lst2.size() - 1)]
+					var lstx = cage_ix[i2]
+					cage_list[lstx][1].push_back(ix)
+					cage_ix[ix] = lstx
+				else:
+					cage_ix[ix] = cage_list.size()
+					cage_list.push_back([0, [ix]])
+	for ix in range(cage_list.size()):		# 各ケージの合計を計算
+		var item = cage_list[ix]
+		var sum = 0
+		var lst = item[CAGE_IX_LIST]
+		for k in range(lst.size()):
+			sum += bit_to_num(cell_bit[lst[k]])
+		item[CAGE_SUM] = sum
+		#print(cage_list[ix])
+		#if sum != 0:
+		#	cage_labels[lst.min()].text = String(sum)
+		#for k in range(lst.size()): cage_ix[lst[k]] = ix
+	quest_cages = cage_list
+	$Board/CageGrid.cage_ix = cage_ix
+	$Board/CageGrid.update()
 	pass
 func count_n_cell_cage(n):
 	var cnt = 0
