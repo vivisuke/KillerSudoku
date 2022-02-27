@@ -1,0 +1,280 @@
+[gd_scene load_steps=17 format=2]
+
+[ext_resource path="res://images/leftward_black.png" type="Texture" id=1]
+[ext_resource path="res://images/leftward_white.png" type="Texture" id=2]
+[ext_resource path="res://images/task_alt_white.png" type="Texture" id=3]
+[ext_resource path="res://fonts/arial.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://fonts/FlopDesignFONT.otf" type="DynamicFontData" id=5]
+[ext_resource path="res://scripts/TitleBar.gd" type="Script" id=6]
+[ext_resource path="res://images/gold_medal.png" type="Texture" id=7]
+[ext_resource path="res://images/arrow_forward_white.png" type="Texture" id=8]
+[ext_resource path="res://scripts/TodaysQuest.gd" type="Script" id=9]
+
+[sub_resource type="DynamicFont" id=1]
+size = 20
+font_data = ExtResource( 5 )
+
+[sub_resource type="DynamicFont" id=2]
+size = 24
+font_data = ExtResource( 5 )
+
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 0.180392, 0.309804, 0.309804, 1 )
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color( 0, 1, 0, 1 )
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_size = 8
+shadow_offset = Vector2( 4, 4 )
+
+[sub_resource type="DynamicFont" id=7]
+size = 12
+font_data = ExtResource( 5 )
+
+[sub_resource type="DynamicFont" id=4]
+font_data = ExtResource( 5 )
+
+[sub_resource type="DynamicFont" id=5]
+size = 12
+font_data = ExtResource( 5 )
+
+[sub_resource type="DynamicFont" id=6]
+font_data = ExtResource( 4 )
+
+[node name="TodaysQuest" type="Node2D"]
+script = ExtResource( 9 )
+
+[node name="BG" type="ColorRect" parent="."]
+margin_right = 500.0
+margin_bottom = 900.0
+color = Color( 0.501961, 0.752941, 0.501961, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TitleBar" type="ColorRect" parent="."]
+margin_right = 500.0
+margin_bottom = 50.0
+color = Color( 0.180392, 0.309804, 0.309804, 1 )
+script = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="BackButton" type="TextureButton" parent="TitleBar"]
+margin_left = 1.0
+margin_top = 1.0
+margin_right = 49.0
+margin_bottom = 49.0
+hint_tooltip = "Back"
+texture_normal = ExtResource( 2 )
+texture_pressed = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="TitleBar"]
+margin_left = 50.0
+margin_top = 1.0
+margin_right = 450.0
+margin_bottom = 49.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = SubResource( 1 )
+text = "今日の問題"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button0" type="Button" parent="."]
+margin_left = 22.0
+margin_top = 348.0
+margin_right = 478.0
+margin_bottom = 402.0
+rect_pivot_offset = Vector2( 353, 32 )
+custom_fonts/font = SubResource( 2 )
+custom_styles/normal = SubResource( 3 )
+text = "入門問題"
+icon = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TimeLabel" type="Label" parent="Button0"]
+margin_left = 373.0
+margin_top = 20.0
+margin_right = 445.0
+margin_bottom = 37.0
+custom_fonts/font = SubResource( 7 )
+text = "N/A"
+align = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button1" type="Button" parent="."]
+margin_left = 22.0
+margin_top = 428.0
+margin_right = 478.0
+margin_bottom = 482.0
+custom_fonts/font = SubResource( 2 )
+custom_styles/normal = SubResource( 3 )
+text = "初級問題"
+icon = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TimeLabel" type="Label" parent="Button1"]
+margin_left = 373.0
+margin_top = 20.0
+margin_right = 445.0
+margin_bottom = 37.0
+custom_fonts/font = SubResource( 7 )
+text = "N/A"
+align = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button2" type="Button" parent="."]
+margin_left = 22.0
+margin_top = 508.0
+margin_right = 478.0
+margin_bottom = 562.0
+custom_fonts/font = SubResource( 2 )
+custom_styles/normal = SubResource( 3 )
+text = "初中級問題"
+icon = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TimeLabel" type="Label" parent="Button2"]
+margin_left = 373.0
+margin_top = 20.0
+margin_right = 445.0
+margin_bottom = 37.0
+custom_fonts/font = SubResource( 7 )
+text = "N/A"
+align = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SolvedTexture" type="TextureRect" parent="."]
+margin_left = -91.0
+margin_top = 1.0
+margin_right = -43.0
+margin_bottom = 49.0
+texture = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="DateLabel" type="Label" parent="."]
+margin_left = 1.0
+margin_top = 100.0
+margin_right = 500.0
+margin_bottom = 121.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 4 )
+text = "YYYY/MM/DD"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ConsDaysLabel" type="Label" parent="."]
+margin_top = 160.0
+margin_right = 499.0
+margin_bottom = 181.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 4 )
+text = "連続クリア日数：0"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ConsYesterdayLabel" type="Label" parent="."]
+margin_top = 185.0
+margin_right = 499.0
+margin_bottom = 206.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 4 )
+text = "昨日までの連続クリア日数：0"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MaxConsDaysLabel" type="Label" parent="."]
+margin_top = 210.0
+margin_right = 499.0
+margin_bottom = 231.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 4 )
+text = "最大連続クリア日数：0"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CoinButton" type="TextureButton" parent="."]
+margin_left = 240.0
+margin_top = 630.0
+margin_right = 288.0
+margin_bottom = 678.0
+texture_normal = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="CoinButton"]
+margin_left = -8.0
+margin_top = 53.0
+margin_right = 56.0
+margin_bottom = 72.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 5 )
+text = "コイン"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="NCoinLabel" type="Label" parent="CoinButton"]
+margin_right = 48.0
+margin_bottom = 48.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 6 )
+text = "10"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CoinLabel" type="Label" parent="."]
+margin_top = 714.0
+margin_right = 499.0
+margin_bottom = 735.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 4 )
+text = "※ 今日の問題を全クリアすると、コインが３個増えます。"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="pressed" from="TitleBar/BackButton" to="." method="_on_BackButton_pressed"]
+[connection signal="pressed" from="Button0" to="." method="_on_Button0_pressed"]
+[connection signal="pressed" from="Button1" to="." method="_on_Button1_pressed"]
+[connection signal="pressed" from="Button2" to="." method="_on_Button2_pressed"]
