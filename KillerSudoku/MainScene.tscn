@@ -822,4 +822,6 @@ stream = ExtResource( 45 )
 [connection signal="toggled" from="Button7" to="." method="_on_Button7_toggled"]
 [connection signal="toggled" from="Button8" to="." method="_on_Button8_toggled"]
 [connection signal="toggled" from="Button9" to="." method="_on_Button9_toggled"]
+[connection signal="pressed" from="UndoButton" to="." method="_on_UndoButton_pressed"]
+[connection signal="pressed" from="RedoButton" to="." method="_on_RedoButton_pressed"]
 [connection signal="pressed" from="AutoMemoButton" to="." method="_on_AutoMemoButton_pressed"]

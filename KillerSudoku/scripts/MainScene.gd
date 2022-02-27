@@ -24,6 +24,8 @@ const CAGE_N_NUM_MAX = 4	# ケージ内最大数字数
 const N_VERT = 9
 const N_HORZ = 9
 const N_CELLS = N_HORZ * N_VERT
+const N_BOX_VERT = 3
+const N_BOX_HORZ = 3
 const CELL_WIDTH = 54
 const CELL_WIDTH3 = CELL_WIDTH/3
 const CELL_WIDTH4 = CELL_WIDTH/4
@@ -48,6 +50,18 @@ const COLOR_DUP = Color.red
 const COLOR_CLUE = Color.black
 #const COLOR_INPUT = Color("#2980b9")	# VELIZE HOLE
 const COLOR_INPUT = Color.black
+const UNDO_TYPE_CELL = 0		# セル数字入力
+const UNDO_TYPE_MEMO = 1		# メモ数字反転
+const UNDO_TYPE_AUTO_MEMO = 2	# 自動メモ
+const UNDO_TYPE_DEL_MEMO = 3	# メモ削除
+const UNDO_ITEM_TYPE = 0
+const UNDO_ITEM_IX = 1
+const UNDO_ITEM_NUM = 2			# for メモ数字
+const UNDO_ITEM_OLD = 2			# for セル数字
+const UNDO_ITEM_NEW = 3			# for セル数字
+const UNDO_ITEM_MEMOIX = 4		# メモ数字反転位置リスト
+const UNDO_ITEM_MEMO = 5		# 数字を入れた位置のメモ数字（ビット値）
+const UNDO_ITEM_MEMO_LST = 1
 const LVL_BEGINNER = 0
 const LVL_EASY = 1
 const LVL_NORMAL = 2
@@ -720,6 +734,13 @@ func get_cell_numer(ix) -> int:		# ix 位置に入っている数字の値を返
 	if input_labels[ix].text != "":
 		return int(input_labels[ix].text)
 	return 0
+func get_memo_bits(ix) -> int:
+	var bits = 0
+	var mask = BIT_1
+	for i in range(N_HORZ):
+		if memo_labels[ix][i].text != "": bits |= mask
+		mask <<= 1
+	return bits
 func update_cell_cursor(num):		# 選択数字ボタンと同じ数字セルを強調
 	if num > 0 && !paused:
 		var num_str = String(num)
@@ -814,6 +835,14 @@ func update_num_buttons_disabled():		# 使い切った数字ボタンをディ�
 		num_used[get_cell_numer(ix)] += 1
 	for i in range(N_HORZ):
 		num_buttons[i+1].disabled = num_used[i+1] >= N_HORZ
+func update_undo_redo():
+	$UndoButton.disabled = undo_ix == 0
+	$RedoButton.disabled = undo_ix == undo_stack.size()
+func push_to_undo_stack(item):
+	if undo_stack.size() > undo_ix:
+		undo_stack.resize(undo_ix)
+	undo_stack.push_back(item)
+	undo_ix += 1
 func sound_effect():
 	if sound:
 		if input_num > 0 && num_used[input_num] >= 9:
@@ -830,6 +859,20 @@ func add_falling_char(num_str, ix : int):
 	pass
 func add_falling_memo(num : int, ix : int):
 	pass
+func remove_all_memo_at(ix):
+	for i in range(N_HORZ):
+		if memo_labels[ix][i].text != "":
+			add_falling_memo(int(memo_labels[ix][i].text), ix)
+			memo_labels[ix][i].text = ""
+func remove_all_memo():
+	for ix in range(N_CELLS):
+		for i in range(N_HORZ):
+			if memo_labels[ix][i].text != "":
+				add_falling_memo(int(memo_labels[ix][i].text), ix)
+				memo_labels[ix][i].text = ""
+	for v in range(N_VERT*3):
+		for h in range(N_HORZ*3):
+			$Board/MemoTileMap.set_cell(h, v, TILE_NONE)
 func remove_memo_num(ix : int, num : int):		# ix に num を入れたときに、メモ数字削除
 	var lst = []
 	var x = ix % N_HORZ
@@ -845,16 +888,38 @@ func remove_memo_num(ix : int, num : int):		# ix に num を入れたときに�
 			add_falling_memo(num, ix2)
 			memo_labels[ix2][num-1].text = ""
 			lst.push_back(ix2)
-	var x0 = x - x % 3
-	var y0 = y - y % 3
-	for v in range(3):
-		for h in range(3):
+	var x0 = x - x % N_BOX_HORZ
+	var y0 = y - y % N_BOX_VERT
+	for v in range(N_BOX_VERT):
+		for h in range(N_BOX_HORZ):
 			var ix2 = xyToIX(x0 + h, y0 + v)
 			if memo_labels[ix2][num-1].text != "":
 				add_falling_memo(num, ix2)
 				memo_labels[ix2][num-1].text = ""
 				lst.push_back(ix2)
 	return lst
+func flip_memo_num(ix : int, num : int):
+	if memo_labels[ix][num-1].text == "":
+		memo_labels[ix][num-1].text = String(num)
+	else:
+		add_falling_memo(int(memo_labels[ix][num-1].text), ix)
+		memo_labels[ix][num-1].text = ""
+func flip_memo_bits(ix, bits):
+	var mask = BIT_1
+	for n in range(N_HORZ):
+		if (bits & mask) != 0:
+			flip_memo_num(ix, n+1)
+		mask <<= 1
+func set_memo_bits(ix, bits):
+	var mask = BIT_1
+	for i in range(N_HORZ):
+		if (bits & mask) != 0:
+			memo_labels[ix][i].text = String(i+1)
+		else:
+			memo_labels[ix][i].text = ""
+		mask <<= 1
+func clear_all_memo(ix):
+	for i in range(N_HORZ): memo_labels[ix][i].text = ""
 func _input(event):
 	if menuPopuped: return
 	if event is InputEventMouseButton && event.is_pressed():
@@ -883,7 +948,7 @@ func _input(event):
 			if cur_num == 0:	# 削除ボタン選択中
 				if input_labels[ix].text != "":
 					##add_falling_char(input_labels[ix].text, ix)
-					#push_to_undo_stack([UNDO_TYPE_CELL, ix, int(input_labels[ix].text), 0, [], 0])		# ix, old, new
+					push_to_undo_stack([UNDO_TYPE_CELL, ix, int(input_labels[ix].text), 0, [], 0])		# ix, old, new
 					input_labels[ix].text = ""
 				else:
 					for i in range(N_HORZ):
@@ -897,13 +962,13 @@ func _input(event):
 					add_falling_char(input_labels[ix].text, ix)
 				var num_str = String(cur_num)
 				if input_labels[ix].text == num_str:	# 同じ数字が入っていれば消去
-					##push_to_undo_stack([UNDO_TYPE_CELL, ix, int(cur_num), 0, [], 0])		# ix, old, new
+					push_to_undo_stack([UNDO_TYPE_CELL, ix, int(cur_num), 0, [], 0])		# ix, old, new
 					input_labels[ix].text = ""
 				else:	# 上書き
 					input_num = int(cur_num)
 					var lst = remove_memo_num(ix, cur_num)
-					#var mb = get_memo_bits(ix)
-					#push_to_undo_stack([UNDO_TYPE_CELL, ix, int(input_labels[ix].text), input_num, lst, mb])
+					var mb = get_memo_bits(ix)
+					push_to_undo_stack([UNDO_TYPE_CELL, ix, int(input_labels[ix].text), input_num, lst, mb])
 					input_labels[ix].text = num_str
 				for i in range(N_HORZ): memo_labels[ix][i].text = ""	# メモ数字削除
 				pass
@@ -1032,10 +1097,51 @@ func _on_AutoMemoButton_pressed():
 	##g.env[g.KEY_N_COINS] -= AUTO_MEMO_N_COINS
 	##$CoinButton/NCoinLabel.text = String(g.env[g.KEY_N_COINS])
 	##g.save_environment()
-	##push_to_undo_stack([UNDO_TYPE_AUTO_MEMO, lst])
+	push_to_undo_stack([UNDO_TYPE_AUTO_MEMO, lst])
 	##update_all_status()
 	##g.auto_save(true, get_cell_state())
 	pass
+func _on_UndoButton_pressed():
+	if paused: return		# ポーズ中
+	undo_ix -= 1
+	var item = undo_stack[undo_ix]
+	if item[UNDO_ITEM_TYPE] == UNDO_TYPE_CELL:
+		var txt = String(item[UNDO_ITEM_OLD]) if item[UNDO_ITEM_OLD] != 0 else ""
+		input_labels[item[UNDO_ITEM_IX]].text = txt
+		var lst = item[UNDO_ITEM_MEMOIX]
+		for i in range(lst.size()):
+			flip_memo_num(lst[i], item[UNDO_ITEM_NEW])
+		var mb = item[UNDO_ITEM_MEMO]
+		flip_memo_bits(item[UNDO_ITEM_IX], mb)
+	elif item[UNDO_ITEM_TYPE] == UNDO_TYPE_MEMO:
+		flip_memo_num(item[UNDO_ITEM_IX], item[UNDO_ITEM_NUM])
+	elif item[UNDO_ITEM_TYPE] == UNDO_TYPE_AUTO_MEMO:
+		var lst = item[UNDO_ITEM_MEMO_LST]
+		for ix in range(N_CELLS):
+			set_memo_bits(ix, lst[ix])
+	elif item[UNDO_ITEM_TYPE] == UNDO_TYPE_DEL_MEMO:
+		var lst = item[UNDO_ITEM_MEMO_LST]
+		for ix in range(N_CELLS):
+			set_memo_bits(ix, lst[ix])
+	update_all_status()
+func _on_RedoButton_pressed():
+	if paused: return		# ポーズ中
+	var item = undo_stack[undo_ix]
+	if item[UNDO_ITEM_TYPE] == UNDO_TYPE_CELL:
+		var txt = String(item[UNDO_ITEM_NEW]) if item[UNDO_ITEM_NEW] != 0 else ""
+		input_labels[item[UNDO_ITEM_IX]].text = txt
+		var lst = item[UNDO_ITEM_MEMOIX]
+		for i in range(lst.size()):
+			flip_memo_num(lst[i], item[UNDO_ITEM_NEW])
+		if item[UNDO_ITEM_NEW] != 0: clear_all_memo(item[UNDO_ITEM_IX])
+	elif item[UNDO_ITEM_TYPE] == UNDO_TYPE_MEMO:
+		flip_memo_num(item[UNDO_ITEM_IX], item[UNDO_ITEM_NUM])
+	elif item[UNDO_ITEM_TYPE] == UNDO_TYPE_AUTO_MEMO:
+		do_auto_memo()
+	elif item[UNDO_ITEM_TYPE] == UNDO_TYPE_DEL_MEMO:
+		remove_all_memo()
+	undo_ix += 1
+	update_all_status()
 
 func _on_BackButton_pressed():
 	g.auto_save(false, [])
