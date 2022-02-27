@@ -586,7 +586,7 @@ func show_clues():
 		clue_labels[i].text = bit_to_numstr(cell_bit[i])
 func gen_ans():		# 解答生成
 	for i in range(N_CELLS):
-		clue_labels[i].text = "?"
+		clue_labels[i].text = ""
 		input_labels[i].text = ""
 	for i in range(box_used.size()): box_used[i] = 0
 	for i in range(cell_bit.size()): cell_bit[i] = 0
