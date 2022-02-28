@@ -618,6 +618,7 @@ func gen_ans():		# 解答生成
 	print_cells()
 	#update_cell_labels()
 	#ans_bit = cell_bit.duplicate()
+	for i in range(N_CELLS): ans_num[i] = bit_to_num(cell_bit[i])
 	for i in range(N_CELLS): input_labels[i].text = ""		# 入力ラベル全消去
 	pass
 func print_cells():
