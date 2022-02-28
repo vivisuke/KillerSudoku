@@ -1,4 +1,4 @@
-[gd_scene load_steps=64 format=2]
+[gd_scene load_steps=67 format=2]
 
 [ext_resource path="res://scripts/TitleBar.gd" type="Script" id=1]
 [ext_resource path="res://images/leftward_white.png" type="Texture" id=2]
@@ -47,6 +47,8 @@
 [ext_resource path="res://sounds/kirakira-3.mp3" type="AudioStream" id=45]
 [ext_resource path="res://sounds/button-3.mp3" type="AudioStream" id=46]
 [ext_resource path="res://scripts/Board.gd" type="Script" id=47]
+[ext_resource path="res://sounds/incorrect.mp3" type="AudioStream" id=48]
+[ext_resource path="res://sounds/correct.mp3" type="AudioStream" id=49]
 
 [sub_resource type="DynamicFont" id=16]
 size = 20
@@ -125,6 +127,9 @@ font_data = ExtResource( 12 )
 3/shape_one_way_margin = 0.0
 3/shapes = [  ]
 3/z_index = 0
+
+[sub_resource type="DynamicFont" id=17]
+font_data = ExtResource( 12 )
 
 [sub_resource type="DynamicFont" id=2]
 size = 40
@@ -273,6 +278,18 @@ margin_right = 486.0
 margin_bottom = 486.0
 color = Color( 1, 1, 1, 0 )
 script = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MessLabel" type="Label" parent="."]
+margin_left = 14.0
+margin_top = 572.0
+margin_right = 134.0
+margin_bottom = 589.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_fonts/font = SubResource( 17 )
+text = "メッセージ"
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -803,14 +820,20 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="AudioNumClicked" type="AudioStreamPlayer2D" parent="."]
+[node name="AudioNumClicked" type="AudioStreamPlayer" parent="."]
 stream = ExtResource( 46 )
 
-[node name="AudioNumCompleted" type="AudioStreamPlayer2D" parent="."]
+[node name="AudioNumCompleted" type="AudioStreamPlayer" parent="."]
 stream = ExtResource( 44 )
 
-[node name="AudioSolved" type="AudioStreamPlayer2D" parent="."]
+[node name="AudioSolved" type="AudioStreamPlayer" parent="."]
 stream = ExtResource( 45 )
+
+[node name="AudioCorrect" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 49 )
+
+[node name="AudioIncorrect" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 48 )
 
 [connection signal="pressed" from="TitleBar/BackButton" to="." method="_on_BackButton_pressed"]
 [connection signal="toggled" from="Button1" to="." method="_on_Button1_toggled"]
@@ -824,4 +847,5 @@ stream = ExtResource( 45 )
 [connection signal="toggled" from="Button9" to="." method="_on_Button9_toggled"]
 [connection signal="pressed" from="UndoButton" to="." method="_on_UndoButton_pressed"]
 [connection signal="pressed" from="RedoButton" to="." method="_on_RedoButton_pressed"]
+[connection signal="pressed" from="CheckButton" to="." method="_on_CheckButton_pressed"]
 [connection signal="pressed" from="AutoMemoButton" to="." method="_on_AutoMemoButton_pressed"]

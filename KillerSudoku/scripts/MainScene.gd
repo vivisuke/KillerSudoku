@@ -728,6 +728,51 @@ func gen_cage():
 		if cage_list[i][IX_CAGE_TOP_LEFT] >= 0:
 			cage_labels[cage_list[i][IX_CAGE_TOP_LEFT]].text = String(cage_list[i][IX_CAGE_SUM])
 	pass
+func add_falling_char(num_str, ix : int):
+	var fc = FallingChar.instance()
+	var x = ix % N_HORZ
+	var y = ix / N_HORZ
+	fc.position = $Board.rect_position + Vector2(x*CELL_WIDTH, y*CELL_WIDTH)
+	fc.get_node("Label").text = num_str
+	var th = rng.randf_range(0, 3.1415926535*2)
+	fc.linear_velocity = Vector2(cos(th), sin(th))*100
+	fc.angular_velocity = rng.randf_range(0, 1)
+	add_child(fc)
+	pass
+func add_falling_memo(num : int, ix : int):
+	var fc = FallingMemo.instance()
+	#var x = (ix % N_HORZ) * 3 + (num-1) % 3
+	#var y = (ix / N_HORZ) * 3 + (num-1) / 3
+	#fc.position = $Board.rect_position + Vector2(x*CELL_WIDTH/3, y*CELL_WIDTH/3)
+	var px = (ix % N_HORZ) * CELL_WIDTH
+	var py = (ix / N_HORZ) * CELL_WIDTH
+	var h = (num-1) % 3
+	var v = (num-1) / 3
+	fc.position = $Board.rect_position + g.memo_label_pos(px, py, h, v)
+	fc.get_node("Label").text = String(num)
+	var th = rng.randf_range(0, 3.1415926535*2)
+	fc.linear_velocity = Vector2(cos(th), sin(th))*100
+	fc.angular_velocity = rng.randf_range(0, 1)
+	#fc.set_scale(1.0/3.0)
+	add_child(fc)
+	pass
+func add_falling_coin():
+	var fc = FallingCoin.instance()
+	fc.position = $CoinButton.rect_position + $CoinButton.rect_size / 2
+	var th = rng.randf_range(0, 3.1415926535*2)
+	fc.linear_velocity = Vector2(cos(th), sin(th))*100
+	fc.angular_velocity = rng.randf_range(0, 1)
+	add_child(fc)
+func get_cell_state() -> Array:
+	var s = []		#
+	for ix in range(N_CELLS):
+		if clue_labels[ix].text != "":
+			s.push_back(int(clue_labels[ix].text))
+		elif input_labels[ix].text != "":
+			s.push_back(int(input_labels[ix].text))
+		else:
+			s.push_back(get_memo_bits(ix) + BIT_MEMO)
+	return s
 func get_cell_numer(ix) -> int:		# ix 位置に入っている数字の値を返す、0 for 空欄
 	if clue_labels[ix].text != "":
 		return int(clue_labels[ix].text)
@@ -854,10 +899,6 @@ func clear_cell_cursor():
 		for x in range(N_HORZ):
 			$Board/TileMap.set_cell(x, y, TILE_NONE)
 func do_emphasize(ix : int, type, fullhouse):
-	pass
-func add_falling_char(num_str, ix : int):
-	pass
-func add_falling_memo(num : int, ix : int):
 	pass
 func remove_all_memo_at(ix):
 	for i in range(N_HORZ):
@@ -1151,3 +1192,27 @@ func _on_BackButton_pressed():
 		get_tree().change_scene("res://TopScene.tscn")
 	else:
 		get_tree().change_scene("res://LevelScene.tscn")
+
+
+func _on_CheckButton_pressed():
+	if paused: return		# ポーズ中
+	if qCreating: return	# 問題生成中
+	if g.env[g.KEY_N_COINS] < 1: return
+	add_falling_coin()
+	g.env[g.KEY_N_COINS] -= 1
+	$CoinButton/NCoinLabel.text = String(g.env[g.KEY_N_COINS])
+	g.save_environment()
+	var err = false
+	for ix in range(N_CELLS):
+		if input_labels[ix].text != "" && int(input_labels[ix].text) != ans_num[ix]:
+			err = true
+			input_labels[ix].add_color_override("font_color", COLOR_INCORRECT)
+	if err:
+		$MessLabel.text = "間違って入っている数字（赤色）があります。"
+		if sound:
+			$AudioIncorrect.play()
+	else:
+		$MessLabel.text = "間違って入っている数字はありません。"
+		if sound:
+			$AudioCorrect.play()
+	pass # Replace with function body.
