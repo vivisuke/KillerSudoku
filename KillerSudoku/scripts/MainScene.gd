@@ -65,6 +65,8 @@ const UNDO_ITEM_MEMO_LST = 1
 const LVL_BEGINNER = 0
 const LVL_EASY = 1
 const LVL_NORMAL = 2
+const N_1CELL_CAGE_BEGINNER = 9
+const N_1CELL_CAGE_EASY = 6
 const AUTO_MEMO_N_COINS = 3				# 自動メモ消費コイン数
 const MIN_1CELL_CAGE = 14
 
@@ -338,9 +340,9 @@ func gen_cages():
 	for ix in range(cage_list.size()):
 		var lst = cage_list[ix][1]
 		for k in range(lst.size()): cage_ix[lst[k]] = ix
-	# undone: 入門問題の場合は１セルケージを8つ、初級の場合は２つ生成
+	# undone: 入門問題の場合は１セルケージを12個、初級の場合は６個生成
 	if g.qLevel < LVL_NORMAL:
-		var cnt = 4 if g.qLevel == LVL_BEGINNER else 2
+		var cnt = N_1CELL_CAGE_BEGINNER if g.qLevel == LVL_BEGINNER else N_1CELL_CAGE_EASY
 		while cnt > 0:
 			var ix = rng.randi_range(0, N_CELLS-1)
 			if cage_ix[ix] >= 0: continue
